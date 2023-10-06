@@ -14,9 +14,46 @@
 
 <img src="/static/about-us.jpg" alt="Look at all the water" class="my_image"/>
 
+<div class="form-container">
 
-<br/>
-<hr/>
+    <!-- Registration Form -->
+    <div class="form-section">
+        <h2>Register</h2>
+        <form action="/" method="post">
+            <div>
+                <label for="reg_username">Username:</label>
+                <input type="text" id="reg_username" name="reg_username" required>
+            </div>
+            <div>
+                <label for="reg_password">Password:</label>
+                <input type="password" id="reg_password" name="reg_password" required>
+            </div>
+            <div>
+                <input type="submit" name="submit-button" value="register">
+            </div>
+        </form>
+    </div>
+
+    <!-- Login Form -->
+    <div class="form-section">
+        <h2>Login</h2>
+        <form action="/" method="post">
+            <div>
+                <label for="log_username">Username:</label>
+                <input type="text" id="log_username" name="log_username" required>
+            </div>
+            <div>
+                <label for="log_password">Password:</label>
+                <input type="password" id="log_password" name="log_password" required>
+            </div>
+            <div>
+                <input type="submit" name="submit-button" value="login">
+            </div>
+        </form>
+    </div>
+
+</div> 
+
 
 <script src="/static/functions.js"></script>
 </body>
