@@ -3,10 +3,6 @@ from pymongo import MongoClient
 
 app = Flask(__name__) #initialise the applicaton
 
-client = MongoClient("mongo")
-mongodb = client["database"]
-mongoCol = mongodb["collection"]
-
 @app.route("/")
 def home():
 
