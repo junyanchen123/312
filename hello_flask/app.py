@@ -100,47 +100,47 @@ def cookie():
 
 @app.route("/register")
 def register():
-# i did str on the request form data since I dont know what type original data is. Probably JSON
-username = html.escape(str(request.form.get('username')))
-
-
-password = str(request.form.get('password'))    # un-hashed/salted password
-bytes = password.encode('utf-8')
-saltedandHashed = bcrypt.hashpw(bytes, bcrypt.gensalt())
-
-
-flag = True        # flag is true if user and pass are unique
-
-# below is to check if the user and pass are unique
- for x in security_collection.find():
-     databaseUsername = x["username"]
-     databasePassword = x["password"]
-    if(username == databaseUsername or saltedandHashed==databasePassword):
-            flag = False
-
-if flag==True:
-    # add new user to the database with html escaped user and salted pass
-    #html escape username here
-    security_collection.insert_one({"username": (html.escape(username)), "password": saltedandHashed})
+    # i did str on the request form data since I dont know what type original data is. Probably JSON
+    username = html.escape(str(request.form.get('username')))
     
-    #Below code should load a page with text saying that registering was sucessful
-    bodystring = username + " has been registered."
-    r = make_response(bodystring)
+    
+    password = str(request.form.get('password'))    # un-hashed/salted password
+    bytes = password.encode('utf-8')
+    saltedandHashed = bcrypt.hashpw(bytes, bcrypt.gensalt())
+    
+    
+    flag = True        # flag is true if user and pass are unique
+    
+    # below is to check if the user and pass are unique
+     for x in security_collection.find():
+         databaseUsername = x["username"]
+         databasePassword = x["password"]
+        if(username == databaseUsername or saltedandHashed==databasePassword):
+                flag = False
 
-    r.headers.set("X-Content-Type-Options", "nosniff")
-    r.headers.set("Content-Type", "text/plain")
-
-    return r
-
-else: 
-    #passing this means either username or password exists in the database
-    bodystring = "Invalid registration. Must be unique username and password"
-    r = make_response(bodystring)
-
-    r.headers.set("X-Content-Type-Options", "nosniff")
-    r.headers.set("Content-Type", "text/plain")
-
-    return r
+    if flag==True:
+        # add new user to the database with html escaped user and salted pass
+        #html escape username here
+        security_collection.insert_one({"username": (html.escape(username)), "password": saltedandHashed})
+        
+        #Below code should load a page with text saying that registering was sucessful
+        bodystring = username + " has been registered."
+        r = make_response(bodystring)
+    
+        r.headers.set("X-Content-Type-Options", "nosniff")
+        r.headers.set("Content-Type", "text/plain")
+    
+        return r
+    
+    else: 
+        #passing this means either username or password exists in the database
+        bodystring = "Invalid registration. Must be unique username and password"
+        r = make_response(bodystring)
+    
+        r.headers.set("X-Content-Type-Options", "nosniff")
+        r.headers.set("Content-Type", "text/plain")
+    
+        return r
     
 
 
