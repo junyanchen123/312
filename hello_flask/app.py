@@ -1,5 +1,6 @@
 from flask import Flask, make_response, request
 from pymongo import MongoClient
+import bcrypt
 
 mongo_client = MongoClient("mongo")
 db = mongo_client["cse312"]
@@ -141,7 +142,51 @@ def register():
         r.headers.set("Content-Type", "text/plain")
     
         return r
+
+
+@app.route("/login")
+def login():
+    # i did str on the request form data since I dont know what type original data is. Probably JSON
+    username = html.escape(str(request.form.get('username')))
+
+    userornah = False  # false if not user. True if user.
     
+    password = str(request.form.get('password'))    # un-hashed/salted password
+
+    for x in security_collection.find():
+         databaseUsername = x["username"]
+         databasePassword = x["password"]
+        if(username == databaseUsername and (password.encode)==databasePassword):
+                userornah = True
+
+    if userornah:
+        #set the token and put it in the token_collection part of the DB
+
+        
+        randomTokenString = bcript.gensalt()    # just a random string
+        randomHashedTokenString = hash(randomTokenString)
+        token_collection.insert_one({"username": (html.escape(username)), "token": randomHashedTokenString})
+
+        bodystring = username + " has been logged in"
+        
+        response = make_response(bodystring)
+    
+        response.headers.set("X-Content-Type-Options", "nosniff")
+        response.headers.set("Content-Type", "text/plain")
+        response.set_cookie("token",str(randomHashedTokenString), max_age = 3600, HttpOnly)
+        return response
+
+       
+    else:
+        # Invalid login. Just let them know, no token here.
+        bodystring = "Invalid login. Try again"
+        
+        response = make_response(bodystring)
+    
+        response.headers.set("X-Content-Type-Options", "nosniff")
+        response.headers.set("Content-Type", "text/plain")
+
+        return response
 
 
 
