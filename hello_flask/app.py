@@ -1,3 +1,4 @@
+import html
 from flask import Flask, make_response, request
 from pymongo import MongoClient
 import bcrypt
@@ -8,11 +9,11 @@ db = mongo_client["cse312"]
 security_collection = db["security"]
 token_collection = db["token"]
 
-app = Flask(__name__) #initialise the applicaton
+app = Flask(__name__)  # initialise the applicaton
+
 
 @app.route("/")
 def home():
-
     htmlCodeStream = open("index.html", "rb")
 
     bodystring: bytes = htmlCodeStream.read()
@@ -72,75 +73,68 @@ def home4():
     r.headers.set("Content-Type", "image/jpg")
 
     return r
-    
-    
-
-    
 
 
 @app.route("/visit-counter/")
 def cookie():
-
     timesvisited = 1
 
     if "visits" in request.cookies:
         stringNumber = request.cookies.get("visits")
-        
-        timesvisited = int(stringNumber) + 1       #update
+
+        timesvisited = int(stringNumber) + 1  # update
 
     visitstring = "Times Visited: " + str(timesvisited)
 
     response = make_response(visitstring)
 
-    response.set_cookie("visits",str(timesvisited), max_age = 3600)
+    response.set_cookie("visits", str(timesvisited), max_age=3600)
 
     response.headers.set("X-Content-Type-Options", "nosniff")
 
     return response
 
 
-@app.route("/register")
+@app.route("/register", methods=['POST'])
 def register():
     # i did str on the request form data since I dont know what type original data is. Probably JSON
     username = html.escape(str(request.form.get('username')))
-    
-    
-    password = str(request.form.get('password'))    # un-hashed/salted password
+
+    password = str(request.form.get('password'))  # un-hashed/salted password
     bytes = password.encode('utf-8')
     saltedandHashed = bcrypt.hashpw(bytes, bcrypt.gensalt())
-    
-    
-    flag = True        # flag is true if user and pass are unique
-    
-    # below is to check if the user and pass are unique
-     for x in security_collection.find():
-         databaseUsername = x["username"]
-         databasePassword = x["password"]
-        if(username == databaseUsername or saltedandHashed==databasePassword):
-                flag = False
 
-    if flag==True:
+    flag = True  # flag is true if user and pass are unique
+
+    # below is to check if the user and pass are unique
+    for x in security_collection.find():
+        databaseUsername = x["username"]
+        databasePassword = x["password"]
+        if (username == databaseUsername or saltedandHashed == databasePassword):
+            flag = False
+
+    if flag == True:
         # add new user to the database with html escaped user and salted pass
-        #html escape username here
+        # html escape username here
         security_collection.insert_one({"username": (html.escape(username)), "password": saltedandHashed})
-        
-        #Below code should load a page with text saying that registering was sucessful
+
+        # Below code should load a page with text saying that registering was sucessful
         bodystring = username + " has been registered."
         r = make_response(bodystring)
-    
+
         r.headers.set("X-Content-Type-Options", "nosniff")
         r.headers.set("Content-Type", "text/plain")
-    
+
         return r
-    
-    else: 
-        #passing this means either username or password exists in the database
+
+    else:
+        # passing this means either username or password exists in the database
         bodystring = "Invalid registration. Must be unique username and password"
         r = make_response(bodystring)
-    
+
         r.headers.set("X-Content-Type-Options", "nosniff")
         r.headers.set("Content-Type", "text/plain")
-    
+
         return r
 
 
@@ -150,50 +144,43 @@ def login():
     username = html.escape(str(request.form.get('username')))
 
     userornah = False  # false if not user. True if user.
-    
-    password = str(request.form.get('password'))    # un-hashed/salted password
+
+    password = str(request.form.get('password'))  # un-hashed/salted password
 
     for x in security_collection.find():
-         databaseUsername = x["username"]
-         databasePassword = x["password"]
-        if(username == databaseUsername and (password.encode)==databasePassword):
-                userornah = True
+        databaseUsername = x["username"]
+        databasePassword = x["password"]
+        if (username == databaseUsername and (password.encode) == databasePassword):
+            userornah = True
 
     if userornah:
-        #set the token and put it in the token_collection part of the DB
+        # set the token and put it in the token_collection part of the DB
 
-        
-        randomTokenString = bcript.gensalt()    # just a random string
+        randomTokenString = bcrypt.gensalt()  # just a random string
         randomHashedTokenString = hash(randomTokenString)
         token_collection.insert_one({"username": (html.escape(username)), "token": randomHashedTokenString})
 
         bodystring = username + " has been logged in"
-        
+
         response = make_response(bodystring)
-    
+
         response.headers.set("X-Content-Type-Options", "nosniff")
         response.headers.set("Content-Type", "text/plain")
-        response.set_cookie("token",str(randomHashedTokenString), max_age = 3600, HttpOnly)
+        response.set_cookie("token", str(randomHashedTokenString), max_age=3600, httponly=True)
         return response
 
-       
+
     else:
         # Invalid login. Just let them know, no token here.
         bodystring = "Invalid login. Try again"
-        
+
         response = make_response(bodystring)
-    
+
         response.headers.set("X-Content-Type-Options", "nosniff")
         response.headers.set("Content-Type", "text/plain")
 
         return response
 
 
-
 if __name__ == '__main__':
-    app.run(debug=True, host="0.0.0.0", port=8080)  #any time files change automatically refresh
-
-
-
-
-
+    app.run(debug=True, host="0.0.0.0", port=8080)  # any time files change automatically refresh
