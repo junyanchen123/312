@@ -98,9 +98,9 @@ def cookie():
 @app.route("/register", methods=['POST'])
 def register():
     # i did str on the request form data since I dont know what type original data is. Probably JSON
-    username = html.escape(str(request.form.get('username')))
+    username = html.escape(str(request.form.get('reg_username')))
 
-    password = str(request.form.get('password'))  # un-hashed/salted password
+    password = str(request.form.get('reg_password'))  # un-hashed/salted password
     bytes = password.encode('utf-8')
     saltedandHashed = bcrypt.hashpw(bytes, bcrypt.gensalt())
 
@@ -138,14 +138,14 @@ def register():
         return r
 
 
-@app.route("/login")
+@app.route("/login", methods=['POST'])
 def login():
     # i did str on the request form data since I dont know what type original data is. Probably JSON
-    username = html.escape(str(request.form.get('username')))
+    username = html.escape(str(request.form.get('log_username')))
 
     userornah = False  # false if not user. True if user.
 
-    password = str(request.form.get('password'))  # un-hashed/salted password
+    password = str(request.form.get('log_password'))  # un-hashed/salted password
 
     for x in security_collection.find():
         databaseUsername = x["username"]
