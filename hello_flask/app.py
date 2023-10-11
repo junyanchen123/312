@@ -101,7 +101,7 @@ def register():
     username = html.escape(str(request.form.get('reg_username')))
 
     password = str(request.form.get('reg_password'))  # un-hashed/salted password
-    bytes = password.encode('utf-8')
+    passwordInBytes = password.encode('utf-8')
     saltedandHashed = bcrypt.hashpw(bytes, bcrypt.gensalt())
 
     flag = True  # flag is true if user and pass are unique
@@ -110,7 +110,7 @@ def register():
     for x in security_collection.find():
         databaseUsername = x["username"]
         databasePassword = x["password"]
-        if (username == databaseUsername or saltedandHashed == databasePassword):
+        if (username == databaseUsername or bcrypt.checkpw(passwordInBytes,databasePassword):
             flag = False
 
     if flag == True:
@@ -147,10 +147,12 @@ def login():
 
     password = str(request.form.get('log_password'))  # un-hashed/salted password
 
+    passwordInBytes = password.encode('utf-8')
+    
     for x in security_collection.find():
         databaseUsername = x["username"]
         databasePassword = x["password"]
-        if (username == databaseUsername and (password.encode) == databasePassword):
+        if (username == databaseUsername and bcrypt.checkpw(passwordInBytes,databasePassword)):
             userornah = True
 
     if userornah:
