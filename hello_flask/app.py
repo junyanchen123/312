@@ -1,5 +1,5 @@
 import html
-from flask import Flask, make_response, request
+from flask import Flask, make_response, request, session, render_template
 from pymongo import MongoClient
 import bcrypt
 
@@ -10,11 +10,12 @@ security_collection = db["security"]
 token_collection = db["token"]
 
 app = Flask(__name__)  # initialise the applicaton
+app.secret_key = "super secret key"
 
 
 @app.route("/")
 def home():
-    htmlCodeStream = open("index.html", "rb")
+    htmlCodeStream = open("templates/index.html", "rb")
 
     bodystring: bytes = htmlCodeStream.read()
 
@@ -24,7 +25,7 @@ def home():
 
     r.headers.set("X-Content-Type-Options", "nosniff")
 
-    return r
+    return render_template('index.html',username = session.get('username'))
 
 
 @app.route("/static/style.css")
@@ -110,7 +111,7 @@ def register():
     for x in security_collection.find():
         databaseUsername = x["username"]
         databasePassword = x["password"]
-        if (username == databaseUsername or bcrypt.checkpw(passwordInBytes,databasePassword):
+        if (username == databaseUsername or bcrypt.checkpw(passwordInBytes,databasePassword)):
             flag = False
 
     if flag == True:
@@ -154,6 +155,8 @@ def login():
         databasePassword = x["password"]
         if (username == databaseUsername and bcrypt.checkpw(passwordInBytes,databasePassword)):
             userornah = True
+            session['username'] = username
+            session['logged_in'] = True
 
     if userornah:
         # set the token and put it in the token_collection part of the DB
