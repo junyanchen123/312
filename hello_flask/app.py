@@ -1,15 +1,15 @@
 import html
-from flask import Flask, make_response, request, session, render_template
+from flask import Flask, make_response, request, session, render_template, redirect
 from pymongo import MongoClient
 import bcrypt
 
 mongo_client = MongoClient("mongo")
-db = mongo_client["cse312"]
+db = mongo_client["cse312"]                                 #database                         
 
-security_collection = db["security"]
-token_collection = db["token"]
+security_collection = db["security"]                        #collection in the database for usernames/passwords?
+token_collection = db["token"]                              #collection in the database for ???
 
-app = Flask(__name__)  # initialise the applicaton
+app = Flask(__name__)                                       #initialise the applicaton
 app.secret_key = "super secret key"
 
 
@@ -76,7 +76,7 @@ def home4():
     return r
 
 
-@app.route("/visit-counter/")
+@app.route("/visit-counter")
 def cookie():
     timesvisited = 1
 
@@ -98,45 +98,20 @@ def cookie():
 
 @app.route("/register", methods=['POST'])
 def register():
-    # i did str on the request form data since I dont know what type original data is. Probably JSON
-    username = html.escape(str(request.form.get('reg_username')))
+    username = html.escape(str(request.form.get('reg_username')))                           #working, gets username from request
+    bPass = str(request.form.get('reg_password')).encode()                                  #password from request in bytes
+    salt = bcrypt.gensalt()                                                                 #salt used to hash password (we need this later)
+    hashPass = bcrypt.hashpw(bPass,salt)                                                    #salted and hashed password
 
-    password = str(request.form.get('reg_password'))  # un-hashed/salted password
-    passwordInBytes = password.encode('utf-8')
-    saltedandHashed = bcrypt.hashpw(bytes, bcrypt.gensalt())
-
-    flag = True  # flag is true if user and pass are unique
-
-    # below is to check if the user and pass are unique
-    for x in security_collection.find():
-        databaseUsername = x["username"]
-        databasePassword = x["password"]
-        if (username == databaseUsername or bcrypt.checkpw(passwordInBytes,databasePassword)):
-            flag = False
-
-    if flag == True:
-        # add new user to the database with html escaped user and salted pass
-        # html escape username here
-        security_collection.insert_one({"username": (html.escape(username)), "password": saltedandHashed})
-
-        # Below code should load a page with text saying that registering was sucessful
-        bodystring = username + " has been registered."
-        r = make_response(bodystring)
-
-        r.headers.set("X-Content-Type-Options", "nosniff")
-        r.headers.set("Content-Type", "text/plain")
-
-        return r
-
+    registeredUsers = list(security_collection.find({}))                                    #finds all registered users, needs to be converted to list to use
+    print(registeredUsers[0])
+    if registeredUsers[0].get('username') != None:                                          #this list is always len 1, the only element is one dictionary containing each user record
+        print("username already in use")                                                    #maybe we can display this in the frontend at some point?
+        return redirect("/")                                                                #redirects back to the login page for now :)
     else:
-        # passing this means either username or password exists in the database
-        bodystring = "Invalid registration. Must be unique username and password"
-        r = make_response(bodystring)
-
-        r.headers.set("X-Content-Type-Options", "nosniff")
-        r.headers.set("Content-Type", "text/plain")
-
-        return r
+        print("username is available :)")
+        security_collection.insert_one({"username":username,"salt":salt,"hpw":hashPass})    #username is unique so it is inserted into the database
+        return redirect("/")
 
 
 @app.route("/login", methods=['POST'])
