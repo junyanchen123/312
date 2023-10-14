@@ -98,40 +98,65 @@ def cookie():
 
 @app.route("/register", methods=['POST'])
 def register():
-    username = html.escape(str(request.form.get('reg_username')))                           #working, gets username from request
-    bPass = str(request.form.get('reg_password')).encode()                                  #password from request in bytes
-    salt = bcrypt.gensalt()                                                                 #salt used to hash password (we need this later)
-    hashPass = bcrypt.hashpw(bPass,salt)                                                    #salted and hashed password
+    username = html.escape(str(request.form.get('reg_username')))                           
+    bPass = str(request.form.get('reg_password')).encode()                                  
+    salt = bcrypt.gensalt()                                                                 
+    hashPass = bcrypt.hashpw(bPass,salt)                                                    
 
-    registeredUsers = list(security_collection.find({}))                                    #finds all registered users, needs to be converted to list to use
-    print(registeredUsers[0])
-    if registeredUsers[0].get('username') != None:                                          #this list is always len 1, the only element is one dictionary containing each user record
-        print("username already in use")                                                    #maybe we can display this in the frontend at some point?
-        return redirect("/")                                                                #redirects back to the login page for now :)
-    else:
-        print("username is available :)")
-        security_collection.insert_one({"username":username,"salt":salt,"hpw":hashPass})    #username is unique so it is inserted into the database
-        return redirect("/")
+    uniqueUser = True                                                                 
+    
+    for x in security_collection.find():                                         
+        databaseUser = x["username"]
+        if databaseUser == username:
+            uniqueUser = False
+        
+         
+    if( not uniqueUser):
+        bodystring = "Invalid register. Must be unique"
+
+        response = make_response(bodystring)
+
+        response.headers.set("X-Content-Type-Options", "nosniff")
+        response.headers.set("Content-Type", "text/plain")
+        return response
+    if (uniqueUser):
+        
+        security_collection.insert_one({"username":username,"salt":salt,"hpw":hashPass})    
+        bodystring = username + " has been registered"
+
+        response = make_response(bodystring)
+
+        response.headers.set("X-Content-Type-Options", "nosniff")
+        response.headers.set("Content-Type", "text/plain")
+
+        return response
 
 
 @app.route("/login", methods=['POST'])
 def login():
     # i did str on the request form data since I dont know what type original data is. Probably JSON
     username = html.escape(str(request.form.get('log_username')))
+    
+    
 
     userornah = False  # false if not user. True if user.
 
+    
+
     password = str(request.form.get('log_password'))  # un-hashed/salted password
+    
 
     passwordInBytes = password.encode('utf-8')
     
+
     for x in security_collection.find():
         databaseUsername = x["username"]
-        databasePassword = x["password"]
-        if (username == databaseUsername and bcrypt.checkpw(passwordInBytes,databasePassword)):
+        
+        databasePassword = x["hpw"]
+        
+        databaseSalt = x["salt"]
+        if (username == databaseUsername and bcrypt.hashpw(passwordInBytes, databaseSalt) == databasePassword):
             userornah = True
-            session['username'] = username
-            session['logged_in'] = True
 
     if userornah:
         # set the token and put it in the token_collection part of the DB
