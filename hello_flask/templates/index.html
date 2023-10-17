@@ -2,7 +2,7 @@
 <head>
     <title>Project 1 Part 1</title>
     <link rel="stylesheet" type="text/css" href="/static/style.css"/>
-    
+
 </head>
 <body onload="welcome();">
 
@@ -56,7 +56,36 @@
         </form>
     </div>
 
-</div> 
+        <!-- Add Post -->
+    <div class="form-section">
+        <h2>Create Post</h2>
+        <form action="/add_post" method="post">
+            <div>
+                <label for="post_title">Title:</label>
+                <input type="text" id="post_title" name="post_title" required>
+            </div>
+            <div>
+                <label for="post_description">Description:</label>
+                <textarea rows="4" cols="50" id="post_description" name="post_description" required></textarea>
+            </div>
+            <div>
+                <input type="submit" name="submit-button" value="Create Post">
+            </div>
+        </form>
+    </div>
+</div>
+
+        <!-- Display User Posts -->
+    <div class="posts-section">
+        <h3>Posts RIGHT HERE!</h3>
+        {% for post in posts %}
+            <div class="post">
+                <h3>{{ post.title }}</h3>
+                <p>{{ post.description }}</p>
+                <small>Posted by: {{ post.username }}</small>
+            </div>
+        {% endfor %}
+    </div>
 
 <script src="/static/functions.js"></script>
 </body>
