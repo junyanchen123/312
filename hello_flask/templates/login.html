@@ -1,7 +1,35 @@
-{% extends 'index.html' %}
+<html>
+<head>
+    <title>Silicon Sages</title>
+    <link rel="stylesheet" type="text/css" href="index.css"/>
+    
+</head>
+<body>
+<div class="form-container">
 
-{% block content %}
-{% if session.logged_in %}
-    <h3>hello {{username}}!</h3>
-{% endif %}
-{% endblock %}
+    <!-- Login Form -->
+    <div class="form-section">
+        <h2>Login</h2>
+        <form action="/login" method="post">
+            <div>
+                <label for="log_username">Username:</label>
+                <input type="text" id="log_username" name="log_username" required>
+            </div>
+            <div>
+                <label for="log_password">Password:</label>
+                <input type="password" id="log_password" name="log_password" required>
+            </div>
+            <div>
+                <input type="submit" name="submit-button" value="Login">
+            </div>
+            <div id = "link">
+                <p>Don't have an account? <a href="/">Register</a></p>
+            </div>
+        </form>
+    </div>
+
+</div> 
+
+<script src="/static/functions.js"></script>
+</body>
+</html>
