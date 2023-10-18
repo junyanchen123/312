@@ -148,7 +148,7 @@ def get_posts():                                #UNTESTED (pulled from most rece
     return json.dumps(posts)
 
 
-@app.route("/add_post", methods=['POST'])       #UNTESTED (pulled from most recent push)
+@app.route("/add_post", methods=['POST'])       #stores posts in the database
 def addPost():
     token_str = request.cookies.get('auth')     #token is a now a string in the database
     try:
@@ -158,31 +158,27 @@ def addPost():
         response.headers.set("X-Content-Type-Options", "nosniff")
         response.headers.set("Content-Type", "text/plain")
         return response
-
-    userData = security_collection.find_one({"hashed authentication token": token})
-    print(userData)
+    hashedToken = hashSlingingSlasher(token)            #hashes the token using sha256 (no salt)
+    userData = security_collection.find_one({"hashed authentication token": hashedToken}) #gets all user information from security_collection
     if not userData:
         response = make_response("Invalid token", 401)  # un-auth
         response.headers.set("X-Content-Type-Options", "nosniff")
         response.headers.set("Content-Type", "text/plain")
         return response
-
-    username = userData.get('username')
-    print(username)
-    title = request.form.get('title')
-    print(title)
-    message = request.form.get('message')
-    print(message)
-    post_collection.insert_one({
+    
+    username = userData.get('username')                         #gets username from security_collection
+    postData = request.json                                     #parses the post json data
+    title = postData['title']                                   #takes the title from the post data
+    message = postData['message']                               #takes the message from the post data
+    post_collection.insert_one({                                #inserts the post into the database
         "title": html.escape(title),
         "message": html.escape(message),
         "username": html.escape(username),
         "mesID": str(uuid4())
     })
-
-    response = make_response("Post Success")
-    response.headers.set("X-Content-Type-Options", "nosniff")
-    response.headers.set("Content-Type", "text/plain")
+    response = make_response("Post Success")                    #creates success response
+    response.headers.set("X-Content-Type-Options", "nosniff")   #sets nosniff header
+    response.headers.set("Content-Type", "text/plain")          #sets plaintext mimetype
     return response
 
 def hashSlingingSlasher(token):                                                 #wrapper for hashlib256

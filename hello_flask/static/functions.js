@@ -1,5 +1,3 @@
-//rewrote frontend
-
 function user(){                                                    //gets the username for the frontend display
     const request = new XMLHttpRequest();                           //generates an XMLHttpRequest for later use
     request.onreadystatechange = function() {                       
@@ -45,11 +43,14 @@ function post(){                    //christian is working on this
     titleTextBox.value = "";                                        //resets the frontend to show a blank title box
     messageTextBox.value = "";                                      //resets the frontend to show a blank message box
     const request = new XMLHttpRequest();                           //generates an XMLHttpRequest for later use
-    request.onreadystatechange = function(){                        //when a 200 response is received, resumes functino here
-        console.log(this.response)                                  //placeholder for now
+    request.onreadystatechange = function(){                        //when a 200 response is received, resumes function here
+        if(request.readyState === 4 && request.status === 200){
+            console.log(this.response);                             //placeholder for now
+        }
     }
     const postInfo = {"title":title,"message":message};             //creates a dictionary to hold the title and message from the frontend
     request.open("POST","/add_post");                               //prepares request to send to python
+    request.setRequestHeader("Content-Type","application/json;charset=utf-8");
     request.send(JSON.stringify(postInfo));                         //sends jsonified dictionary with post content to python
 }
 
