@@ -16,8 +16,8 @@ function user(){                                                    //gets the u
 function updatePosts() {
     const request = new XMLHttpRequest();
     request.onreadystatechange = function() {
-        if (request.readyState === 4 && request.status === 200) {
-            const data = JSON.parse(request.responseText);
+        if (this.readyState === 4 && this.status === 200) {
+            const data = JSON.parse(this.response);
             const postList = document.querySelector('.post-list');
             let posts = '';
             data.forEach(post => { // every time update post in this format
