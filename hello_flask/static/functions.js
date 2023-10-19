@@ -13,27 +13,29 @@ function user(){                                                    //gets the u
     request.send();
 }
 
-function updatePosts() {  //TODO adapt this function for new frontend
+function updatePosts() {
     const request = new XMLHttpRequest();
     request.onreadystatechange = function() {
         if (request.readyState === 4 && request.status === 200) {
             const data = JSON.parse(request.responseText);
-            const postsSection = document.querySelector('.posts-section');
-            let posts = '<h3>Posts RIGHT HERE!</h3>';
-            data.forEach(post => {
+            const postList = document.querySelector('.post-list');
+            let posts = '';
+            data.forEach(post => { // every time update post in this format
                 posts += `
-                <div class="post">
-                    <h3>${post.title}</h3>
-                    <p>${post.description}</p>
+                <li class="post-item">
+                    <div class="post-title">Title: ${post.title}</div>
+                    <div class="post-message">Description: ${post.message}</div>
                     <small>Posted by: ${post.username}</small>
-                </div>`;
+                </li>`;
             });
-            postsSection.innerHTML = posts;
+            postList.innerHTML = posts;
         }
     };
     request.open("GET", "/get_posts");
     request.send();
 }
+
+
 
 function post(){                    //christian is working on this
     const titleTextBox = document.getElementById("titleBox");       //gets title of posts from the frontend
