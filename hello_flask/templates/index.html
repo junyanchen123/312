@@ -5,9 +5,10 @@
     
 </head>
 
+<div class="background"></div>
+
 <body>
 <div class="form-container">
-    <!-- Registration Form -->
     <div class="form-section">
         <h2>Register</h2>
         <form action="/register" method="post">
@@ -20,31 +21,13 @@
                 <input type="password" id="reg_password" name="reg_password" required>
             </div>
             <div>
-                <input type="submit" name="submit-button" value="Register">
+                <input type="submit" name="submit-button" value="Register" class="button">
             </div>
             <div id = "link">
                 <p>Already Registered? <a href="/login.html">Login</a></p>
             </div>
         </form>
     </div>
-
-    <!-- Login Form -->
-    <!-- <div class="form-section">
-        <h2>Login</h2>
-        <form action="/login" method="post">
-            <div>
-                <label for="log_username">Username:</label>
-                <input type="text" id="log_username" name="log_username" required>
-            </div>
-            <div>
-                <label for="log_password">Password:</label>
-                <input type="password" id="log_password" name="log_password" required>
-            </div>
-            <div>
-                <input type="submit" name="submit-button" value="login">
-            </div>
-        </form>
-    </div> -->
 
 </div> 
 </body>

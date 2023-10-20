@@ -1,23 +1,30 @@
 body {
-    font-family: Arial, sans-serif;
-    background-color: rgb(73, 79, 82);
     color: white;
+    font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+    background-attachment: fixed;
+    background-image: url("background-posts.jpg");
+    background-repeat: no-repeat;
+    background-size: cover;
 }
 
 h1 {
     text-align: center;
+    font-size: 50px;
     padding: 20px;
-    background-color: #333; /* Adjust the background color as needed */
+    background-color: #021a1d;; 
+    border-radius: 5px;
+    border: 1px solid #0ff9fa;
 }
 
 .container {
     display: flex;
     justify-content: space-between;
     margin: 20px;
+    
 }
 
 .left-side {
-    width: 50%;
+    width: 45%;
     padding: 20px;
     overflow: hidden;
     overflow-y: scroll;
@@ -25,8 +32,14 @@ h1 {
 }
 
 .right-side {
-    width: 50%;
+    width: 45%;
     padding: 20px;
+    background-color: #021a1d;
+    font-size: 25px;
+    color: white;
+    border-radius: 5px;
+    border: 1px solid #0ff9fa;
+    
 }
 
 .username {
@@ -42,17 +55,21 @@ h1 {
 .post-title {
     font-size: 18px;
     margin-bottom: 10px;
+    font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;    
 }
 
 .post-message {
     font-size: 16px;
     margin-bottom: 10px;
+    font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;    
 }
 
-.post-button {
+button {
     width: 100px;
-    background-color: #007BFF;
-    color: #fff;
+    border-radius: 10px;
+    background-color: #3a6163;
+    color: white;
+    font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;    
     border: none;
     padding: 10px;
     cursor: pointer;
@@ -61,10 +78,15 @@ h1 {
 .post-list {
     list-style: none;
     padding: 0;
+    
 }
 
 .post-item {
     border: 1px solid #ccc;
     padding: 10px;
     margin-bottom: 10px;
+    background-color: #0ff9fa;
+    border-radius: 10px;
+    color: #010F10;
+    
 }
