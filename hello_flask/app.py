@@ -10,7 +10,9 @@ mongo_client = MongoClient("mongo")
 db = mongo_client["cse312"]                                 #database                         
 
 security_collection = db["security"]                        #collection in the database for usernames/salts/password hashes/auth hashes
-post_collection = db["post"]                                #collection in the database for posts
+post_collection = db["post"]   
+
+#post_collection.delete_many({})                             #collection in the database for posts
 
 app = Flask(__name__)                                       #initialise the applicaton
 
@@ -77,6 +79,14 @@ def jsFunctions():
 @app.route("/static/about-us.jpg")
 def home4():
     imageCodeStream = open("static/about-us.jpg", "rb").read()
+    r = make_response(imageCodeStream)
+    r.headers.set("X-Content-Type-Options", "nosniff")
+    r.headers.set("Content-Type", "image/jpg")
+    return r
+
+@app.route("/background-posts.jpg")
+def home5():
+    imageCodeStream = open("templates/background-posts.jpg", "rb").read()
     r = make_response(imageCodeStream)
     r.headers.set("X-Content-Type-Options", "nosniff")
     r.headers.set("Content-Type", "image/jpg")
