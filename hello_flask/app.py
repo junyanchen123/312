@@ -18,42 +18,23 @@ app = Flask(__name__)                                       #initialise the appl
 
 @app.route("/")
 def home():
-    htmlCodeStream = open("templates/index.html", "rb").read()                  #reads index.html as bytes
-    r = make_response(htmlCodeStream.decode())                                  #makes response to serve index.html
-    r.headers.set("X-Content-Type-Options", "nosniff")                          #sets nosniff header
-    return r
+    return htmler("templates/index.html")
 
 @app.route("/login.html")
 def logger():
-    loginPage = open("templates/login.html","rb").read()
-    response = make_response(loginPage)
-    response.headers.set("X-Content-Type-Options","nosniff")
-    response.headers.set("Content-Type","text/html")
-    return response
+    return htmler("templates/login.html")
 
 @app.route("/index.css")
 def indexCsser():
-    cssCodeStream = open("templates/index.css", "rb").read()
-    r = make_response(cssCodeStream.decode())
-    r.headers.set("X-Content-Type-Options", "nosniff")
-    r.headers.set("Content-Type", "text/css")
-    return r
+    return csser("templates/index.css")
 
 @app.route("/posts.html")
 def posterhtml():
-    posterer = open("templates/posts.html","rb").read()
-    response = make_response(posterer)
-    response.headers.set("Content-Type","text/html")
-    response.headers.set("X-Content-Type-Options","nosniff")
-    return response
+    return htmler("templates/posts.html")
 
 @app.route("/posts.css")
 def posterthingy():
-    posterer = open("templates/posts.css","rb").read()
-    response = make_response(posterer)
-    response.headers.set("Content-Type","text/css")
-    response.headers.set("X-Content-Type-Options","nosniff")
-    return response
+    return csser("templates/posts.css")
 
 @app.route("/finduser")
 def userLocator():
@@ -61,44 +42,23 @@ def userLocator():
     hashAuth = hashSlingingSlasher(auth)
     record = security_collection.find_one({"hashed authentication token":hashAuth})
     username = record["username"]
-    response = make_response(username)
-    response.headers.set("X-Content-Type-Options","nosniff")
-    response.headers.set("Content-Type","text/plain")
-    return response
+    return betterMakeResponse(username,"text/plain")
 
 @app.route("/functions.js")
 def jsFunctions():
     jsCodeStream = open("static/functions.js", "rb").read()
-    response = make_response(jsCodeStream)
-    response.headers.set("X-Content-Type-Options", "nosniff")
-    response.headers.set("Content-Type", "text/javascript")
-    return response
-
-@app.route("/static/about-us.jpg")
-def home4():
-    imageCodeStream = open("static/about-us.jpg", "rb").read()
-    r = make_response(imageCodeStream)
-    r.headers.set("X-Content-Type-Options", "nosniff")
-    r.headers.set("Content-Type", "image/jpg")
-    return r
+    return betterMakeResponse(jsCodeStream,"text/javascript")
 
 @app.route("/visit-counter")
 def cookie():
     timesvisited = 1
-
     if "visits" in request.cookies:
         stringNumber = request.cookies.get("visits")
-
         timesvisited = int(stringNumber) + 1  # update
-
     visitstring = "Times Visited: " + str(timesvisited)
-
     response = make_response(visitstring)
-
     response.set_cookie("visits", str(timesvisited), max_age=3600)
-
     response.headers.set("X-Content-Type-Options", "nosniff")
-
     return response
 
 @app.route("/register", methods=['POST'])
@@ -154,17 +114,11 @@ def addPost():
     try:
         token = str(token_str)                  #should already be str, if None it will fail
     except TypeError:  # if None no user log in
-        response = make_response("No user login", 401)
-        response.headers.set("X-Content-Type-Options", "nosniff")
-        response.headers.set("Content-Type", "text/plain")
-        return response
+        return betterMakeResponse("No user login","text/plain",401)
     hashedToken = hashSlingingSlasher(token)            #hashes the token using sha256 (no salt)
     userData = security_collection.find_one({"hashed authentication token": hashedToken}) #gets all user information from security_collection
     if not userData:
-        response = make_response("Invalid token", 401)  # un-auth
-        response.headers.set("X-Content-Type-Options", "nosniff")
-        response.headers.set("Content-Type", "text/plain")
-        return response
+        return betterMakeResponse("Invalid token","text/plain",401)
     
     username = userData.get('username')                         #gets username from security_collection
     postData = request.json                                     #parses the post json data
@@ -176,16 +130,29 @@ def addPost():
         "username": html.escape(username),
         "mesID": str(uuid4())
     })
-    response = make_response("Post Success")                    #creates success response
-    response.headers.set("X-Content-Type-Options", "nosniff")   #sets nosniff header
-    response.headers.set("Content-Type", "text/plain")          #sets plaintext mimetype
-    return response
+    return betterMakeResponse("Post Success","text/plain")
 
 def hashSlingingSlasher(token):                                                 #wrapper for hashlib256
     object256 = hashlib.sha256()
     object256.update(token.encode())
     tokenHash = object256.digest()
     return(tokenHash)
+
+def htmler(filename):
+    file = open(filename,"rb").read()
+    return betterMakeResponse(file,"text/html")
+
+def csser(filename):
+    file = open(filename,"rb").read()
+    return betterMakeResponse(file,"text/css")
+
+def betterMakeResponse(file,ct,status=200):                     #takes in all necessary info to make a response
+    response = make_response(file,status)                       
+    #file is either a file to send or a string to encode
+    #default status is 200 unless specified otherwise
+    response.headers.set("Content-Type",ct)                     #sets content type header to the content type string ct
+    response.headers.set("X-Content-Type-Options","nosniff")    #sets nosniff header
+    return response
 
 if __name__ == '__main__':
     app.run(debug=True, host="0.0.0.0", port=8080)  # any time files change automatically refresh
