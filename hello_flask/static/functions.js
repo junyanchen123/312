@@ -23,8 +23,8 @@ function updatePosts() {
             data.forEach(post => { // every time update post in this format
                 posts += `
                 <li class="post-item">
-                    <div class="post-title">Title: ${post.title}</div>
-                    <div class="post-message">Description: ${post.message}</div>
+                    <div class="post-title"> ${post.title}</div>
+                    <div class="post-message">${post.message}</div>
                     <small>Posted by: ${post.username}</small>
                 </li>`;
             });
