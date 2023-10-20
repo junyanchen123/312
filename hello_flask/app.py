@@ -138,21 +138,21 @@ def hashSlingingSlasher(token):                                                 
     tokenHash = object256.digest()
     return(tokenHash)
 
-def htmler(filename):
-    file = open(filename,"rb").read()
-    return betterMakeResponse(file,"text/html")
+def htmler(filename):                                                           #wrapper for opening html files as bytes
+    file = open(filename,"rb").read()                                           #opens filename as bytes and reads the contents
+    return betterMakeResponse(file,"text/html")                                 #uses betterMakeResonse wrapper to make a response
 
-def csser(filename):
-    file = open(filename,"rb").read()
-    return betterMakeResponse(file,"text/css")
+def csser(filename):                                                            #wrapper for opening css files
+    file = open(filename,"rb").read()                                           #opens filename as bytes and reads the contents
+    return betterMakeResponse(file,"text/css")                                  #uses betterMakeResponse wrapper to make a response
 
-def betterMakeResponse(file,ct,status=200):                     #takes in all necessary info to make a response
+def betterMakeResponse(file,ct,status=200):                                     #takes in all necessary info to make a response
     response = make_response(file,status)                       
     #file is either a file to send or a string to encode
     #default status is 200 unless specified otherwise
-    response.headers.set("Content-Type",ct)                     #sets content type header to the content type string ct
-    response.headers.set("X-Content-Type-Options","nosniff")    #sets nosniff header
-    return response
+    response.headers.set("Content-Type",ct)                                     #sets content type header to the content type string ct
+    response.headers.set("X-Content-Type-Options","nosniff")                    #sets nosniff header
+    return response                                                             #returns response object
 
 if __name__ == '__main__':
     app.run(debug=True, host="0.0.0.0", port=8080)  # any time files change automatically refresh
