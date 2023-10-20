@@ -138,7 +138,8 @@ def addPost():
         "title": html.escape(title),
         "message": html.escape(message),
         "username": html.escape(username),
-        "mesID": str(uuid4())
+        "mesID": str(uuid4()),
+        "liked": False
     })
     return betterMakeResponse("Post Success","text/plain")
 
@@ -152,9 +153,25 @@ def like():
     hashedToken = hashSlingingSlasher(token)  # hashes the token using sha256 (no salt)
     userData = security_collection.find_one(
         {"hashed authentication token": hashedToken})  # gets all user information from security_collection
-    print(userData)
+    if not userData:
+        return betterMakeResponse("Invalid token", "text/plain", 401)
 
     #TODO complet like/unlike backend
+    data = request.get_json()
+    mesId = data.get('mesID')
+    isLiked = data.get('liked')
+    if isLiked == "true":
+        isLiked = True
+    else:
+        isLiked = False
+    print(isLiked)
+    isLiked = not isLiked
+    print(isLiked)
+    post_collection.update_one(
+    {"mesID": mesId},
+    {"$set": {"liked": isLiked}}
+)
+    return betterMakeResponse("update like success", "text/plain", 200)
 
 def hashSlingingSlasher(token):                                                 #wrapper for hashlib256
     object256 = hashlib.sha256()
