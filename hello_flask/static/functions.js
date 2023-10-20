@@ -26,6 +26,11 @@ function updatePosts() {
                     <div class="post-title"> ${post.title}</div>
                     <div class="post-message">${post.message}</div>
                     <small>Posted by: ${post.username}</small>
+                    <button class="post-like-button" onclick="like_post('${post.id}')">Like</button>
+                    
+                    <!-- Create post.likes for showing the likes number -->
+                    <p class="post-like-count">${post.likes} likes</p>  
+                    
                 </li>`;
             });
             postList.innerHTML = posts;
@@ -35,13 +40,26 @@ function updatePosts() {
     request.send();
 }
 
+function like_post(postid) {
+    const request = new XMLHttpRequest();                           //generates an XMLHttpRequest for later use
+        request.onreadystatechange = function(){                        //when a 200 response is received, resumes function here
+        if(request.readyState === 4 && request.status === 200){
+            updatePosts();                                                      //Update the button and count
+        }
+    }
+    request.open("POST", "/like");
+    request.setRequestHeader("Content-Type", "application/json;charset=utf-8");
+    request.send(JSON.stringify({ postId: postid }));
+}
+
 
 
 function post(){                    //christian is working on this
     const titleTextBox = document.getElementById("titleBox");       //gets title of posts from the frontend
     const title = titleTextBox.value;                               //actual text from the title box in frontend
     const messageTextBox = document.getElementById("messageBox");   //gets message from post from the frontend
-    const message = messageTextBox.value;                           //actual text from the message box 
+    const message = messageTextBox.value;                           //actual text from the message box
+    const likes = 0;
     titleTextBox.value = "";                                        //resets the frontend to show a blank title box
     messageTextBox.value = "";                                      //resets the frontend to show a blank message box
     const request = new XMLHttpRequest();                           //generates an XMLHttpRequest for later use

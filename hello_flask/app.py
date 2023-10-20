@@ -142,6 +142,20 @@ def addPost():
     })
     return betterMakeResponse("Post Success","text/plain")
 
+@app.route('/like', methods=['POST'])
+def like():
+    token_str = request.cookies.get('auth')  # token is a now a string in the database
+    try:
+        token = str(token_str)  # should already be str, if None it will fail
+    except TypeError:  # if None no user log in
+        return betterMakeResponse("No user login", "text/plain", 401)
+    hashedToken = hashSlingingSlasher(token)  # hashes the token using sha256 (no salt)
+    userData = security_collection.find_one(
+        {"hashed authentication token": hashedToken})  # gets all user information from security_collection
+    print(userData)
+
+    #TODO complet like/unlike backend
+
 def hashSlingingSlasher(token):                                                 #wrapper for hashlib256
     object256 = hashlib.sha256()
     object256.update(token.encode())
