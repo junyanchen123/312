@@ -1,0 +1,50 @@
+body {
+    text-align: center;
+    color: white;
+    font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+}
+
+.background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 100vw;
+    background: radial-gradient(at 18% 99%, #0ff9fa 0px, transparent 50%) repeat scroll 0% 0%, 
+                radial-gradient(at 97% 8%, rgb(24, 26, 27) 0px, transparent 50%) repeat scroll 0% 0%, 
+                radial-gradient(at 79% 82%, rgb(24, 26, 27) 0px, transparent 50%) repeat scroll 0% 0%,
+                radial-gradient(at 96% 10%, #0ff9fa 0px, transparent 50%) repeat scroll 0% 0%,    
+                radial-gradient(at 42% 20%, #3a6163 0px, transparent 50%) repeat scroll 0% 0%,
+                radial-gradient(at 4% 49%, rgb(24, 26, 27) 0px, transparent 50%) repeat scroll 0% 0%, rgba(0, 0, 0, 0) radial-gradient(at 57% 33%, #0ff9fa 0px, #3a6163 50%) repeat scroll 0% 0%;
+    z-index: -1;
+}    
+
+
+.form-container {
+    display: inline-block;
+    margin-top: 50;
+    background-color: rgb(24, 26, 27);
+    border: 2px solid #0ff9fa;
+    border-style: groove;
+    padding: 20px;
+    width: 200px;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.form-section {
+    margin-top: 10px;
+    background-color: rgb(24, 26, 27);
+    display: inline-block;
+    
+}
+
+#link {
+    font-size:x-small;
+    
+}
+
+.button {
+    background-color: #3a6163;
+    color: white;
+    font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;  
+}

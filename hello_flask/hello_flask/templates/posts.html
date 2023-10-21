@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Silicon Sages</title>
+    <link rel="stylesheet" type="text/css" href="posts.css"/>
+</head>
+
+<div class="background"></div>
+
+<body onload="post_init();">
+    <h1 id="uHeader"></h1>
+    <div class="container">
+        <div class="left-side">
+            <ul class="post-list">
+                <li class="post-item">
+                    <div class="post-title"></div>
+                    <div class="post-message"></div>
+                </li>
+            </ul>
+        </div>
+        <div class="right-side">
+            <div id="username">Username</div>
+            <div class="post-form">
+                <input type="text" class="post-title" id="titleBox" placeholder="Title">
+                <textarea class="post-message" id="messageBox" placeholder="Message"></textarea>
+                <button onclick="post();">Post</button>
+            </div>
+        </div>
+    </div>
+
+<script src="/static/functions.js"></script>
+</body>
+</html>
