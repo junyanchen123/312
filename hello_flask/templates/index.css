@@ -43,6 +43,10 @@ body {
     
 }
 
+#guest {
+    font-size:x-small;
+}
+
 .button {
     background-color: #3a6163;
     color: white;
