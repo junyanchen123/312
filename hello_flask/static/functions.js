@@ -21,14 +21,13 @@ function updatePosts() {
             const postList = document.querySelector('.post-list');
             let posts = '';
             data.forEach(post => { // every time update post in this format
-                const likeButtonText = post.liked ? 'Unlike' : 'Like';
                 posts += `
                 <li class="post-item">
                     <div class="post-title"> ${post.title}</div>
                     <div class="post-message">${post.message}</div>
                     <small>Posted by: ${post.username}</small>
-                    <button class="post-like-button" onclick="like_post('${post.mesID}', this, '${post.liked}')">${likeButtonText}</button>
-                    
+                    <button class="post-like-button" onclick="like_post('${post.mesID}'),change()">Like/Unlike</button> 
+                    <p>Press the button First time is Like, Press again is Unlike</p>
                     <!-- Create post.likes for showing the likes number -->
                     <p class="post-like-count">${post.likes} likes</p>  
                     
@@ -41,24 +40,20 @@ function updatePosts() {
     request.send();
 }
 
-function like_post(mesid, button, isLiked) {
-    const request = new XMLHttpRequest();
-    request.onreadystatechange = function() {
-        if (request.readyState === 4 && request.status === 200) {
-            const response = JSON.parse(request.responseText);
-            if (response.success) {
-                print(type(isLiked))
-                // Toggle the button text based on the new like status
-                button.textContent = isLiked ? 'Unlike' : 'Like';
-            } else {
-                console.error('Failed to toggle like status.');
-            }
+function like_post(postid) {
+    const request = new XMLHttpRequest();                           //generates an XMLHttpRequest for later use
+        request.onreadystatechange = function(){                        //when a 200 response is received, resumes function here
+        if(request.readyState === 4 && request.status === 200){
+            updatePosts();                                                      //Update the button and count
         }
-    };
+    }
     request.open("POST", "/like");
     request.setRequestHeader("Content-Type", "application/json;charset=utf-8");
-    request.send(JSON.stringify({ mesID: mesid, liked: isLiked}));
+    console.log(postid)
+    request.send(JSON.stringify({"postid":postid}));
 }
+
+
 
 function post(){                    //christian is working on this
     const titleTextBox = document.getElementById("titleBox");       //gets title of posts from the frontend

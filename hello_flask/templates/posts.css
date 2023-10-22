@@ -74,6 +74,9 @@ button {
     padding: 10px;
     cursor: pointer;
 }
+button:active{
+    background:red;
+}
 
 .post-list {
     list-style: none;
