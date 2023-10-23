@@ -13,6 +13,12 @@ function user(){                                                    //gets the u
     request.send();
 }
 
+function guestMode(){                       //function that removes auth cookie if it exists
+    const request = new XMLHttpRequest();
+    request.open("POST","/guest");
+    request.send();
+}
+
 function updatePosts() {
     const request = new XMLHttpRequest();
     request.onreadystatechange = function() {
@@ -53,9 +59,7 @@ function like_post(postid) {
     request.send(JSON.stringify({"postid":postid}));
 }
 
-
-
-function post(){                    //christian is working on this
+function post(){                    
     const titleTextBox = document.getElementById("titleBox");       //gets title of posts from the frontend
     const title = titleTextBox.value;                               //actual text from the title box in frontend
     const messageTextBox = document.getElementById("messageBox");   //gets message from post from the frontend

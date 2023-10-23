@@ -2,6 +2,7 @@ import html
 import hashlib
 import bcrypt
 import json
+import datetime
 from flask import Flask, make_response, request, redirect
 from pymongo import MongoClient
 from uuid import uuid4
@@ -12,11 +13,9 @@ db = mongo_client["cse312"]  # database
 security_collection = db["security"]  # collection in the database for usernames/salts/password hashes/auth hashes
 post_collection = db["post"]
 
-# post_collection.delete_many({})                             #collection in the database for posts
-
 app = Flask(__name__)  # initialise the applicaton
 
-
+# post_collection.delete_many({})                            #REMOVE THIS LINE
 # security_collection.delete_many({})                        #REMOVE THIS LINE
 
 @app.route("/")
@@ -46,10 +45,12 @@ def posterthingy():
 
 @app.route("/finduser")
 def userLocator():
-    auth = request.cookies.get('auth')
-    hashAuth = hashSlingingSlasher(auth)
-    record = security_collection.find_one({"hashed authentication token": hashAuth})
-    username = record["username"]
+    auth = request.cookies.get('auth')          #gets auth plaintext
+    username = "Guest"                          #default is guest
+    if auth != None:                            #if there is an auth cookie, gets username
+        hashAuth = hashSlingingSlasher(auth)    #hashes auth plaintext
+        record = security_collection.find_one({"hashed authentication token": hashAuth})    #finds user record in database
+        username = record["username"]           #gets username from user record
     return betterMakeResponse(username, "text/plain")
 
 
@@ -60,13 +61,9 @@ def jsFunctions():
 
 
 @app.route("/background-posts.jpg")
-def home5():
+def background():
     imageCodeStream = open("templates/background-posts.jpg", "rb").read()
-    r = make_response(imageCodeStream)
-    r.headers.set("X-Content-Type-Options", "nosniff")
-    r.headers.set("Content-Type", "image/jpg")
-    return r
-
+    return betterMakeResponse(imageCodeStream,"image/jpg")
 
 @app.route("/visit-counter")
 def cookie():
@@ -80,6 +77,14 @@ def cookie():
     response.headers.set("X-Content-Type-Options", "nosniff")
     return response
 
+
+@app.route("/guest", methods=['POST'])
+def guestMode():
+    token_str = request.cookies.get("auth")                 #gets auth plaintext cookie
+    response = make_response(redirect("/posts.html",301))   #makes redirect response object
+    if token_str != None:                                   #if there is a user signed in
+        response.delete_cookie("auth")                      #remove auth cookie (sign user out)
+    return response                                         #return posts.html
 
 @app.route("/register", methods=['POST'])
 def register():
