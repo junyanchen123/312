@@ -93,3 +93,13 @@ button:active{
     color: #010F10;
     
 }
+
+#lpage {
+    font-size: small;
+    margin-top: 20px;
+}
+
+#rpage {
+    font-size: small;
+    margin-top: 60px;
+}
