@@ -17,8 +17,9 @@ quiz_collection = db['quiz']
 
 app = Flask(__name__)  # initialise the applicaton
 
-# post_collection.delete_many({})                            #REMOVE THIS LINE
-# security_collection.delete_many({})                        #REMOVE THIS LINE
+post_collection.delete_many({})                            #REMOVE THIS LINE
+security_collection.delete_many({})                        #REMOVE THIS LINE
+quiz_collection.delete_many({})
 
 @app.route("/")
 def home():
@@ -45,7 +46,7 @@ def posterthingy():
     return csser("templates/posts.css")
 
 
-@app.route("/finduser")
+
 def userLocator():
     auth = request.cookies.get('auth')          #gets auth plaintext
     username = "Guest"                          #default is guest
@@ -53,7 +54,7 @@ def userLocator():
         hashAuth = hashSlingingSlasher(auth)    #hashes auth plaintext
         record = security_collection.find_one({"hashed authentication token": hashAuth})    #finds user record in database
         username = record["username"]           #gets username from user record
-    return betterMakeResponse(username, "text/plain")
+    return username
 
 
 @app.route("/functions.js")
@@ -83,7 +84,7 @@ def cookie():
 @app.route("/guest", methods=['POST'])
 def guestMode():
     token_str = request.cookies.get("auth")                 #gets auth plaintext cookie
-    response = make_response(redirect("/posts.html",301))   #makes redirect response object
+    response = make_response(redirect("/view_quizzes.html",301))   #makes redirect response object
     if token_str != None:                                   #if there is a user signed in
         response.delete_cookie("auth")                      #remove auth cookie (sign user out)
     return response                                         #return posts.html
@@ -126,7 +127,7 @@ def login():
                                            {"$set": {"hashed authentication token": tokenHash}},
                                            True)  # updates database to include authenticated token hash in the record
             response = make_response(
-                redirect('/create_quiz', 301))  # generates response that will redirect to the posts page
+                redirect('/view_quizzes', 301))  # generates response that will redirect to the posts page
             response.set_cookie("auth", token, 3600, httponly=True)  # sets authentication token as a cookie
             return response
         else:
@@ -216,16 +217,18 @@ def create_quiz():
 
         # Save the quiz data to the MongoDB database
         quiz_data = {
-            'question': question,
-            'option1': option1,
-            'option2': option2,
-            'option3': option3,
-            'option4': option4,
-            'correct_answer': correct_answer
+            'username': userLocator(),
+            'question': html.escape(question),
+            'option1': html.escape(option1),
+            'option2': html.escape(option2),
+            'option3': html.escape(option3),
+            'option4': html.escape(option4),
+            'correct_answer': html.escape(correct_answer)
         }
         quiz_collection.insert_one(quiz_data)
 
-        return betterMakeResponse("Create quiz successfully", "text/plain", 200)
+        #return betterMakeResponse("Create quiz successfully", "text/plain", 200)
+        return redirect('/view_quizzes', 301)
     else:
         # If it's a get request, render the 'create_quiz.html' template
         return render_template('create_quiz.html')
