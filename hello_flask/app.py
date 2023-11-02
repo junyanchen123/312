@@ -3,7 +3,8 @@ import hashlib
 import bcrypt
 import json
 import datetime
-from flask import Flask, make_response, request, redirect
+from bson.objectid import ObjectId
+from flask import Flask, make_response, request, redirect, render_template
 from pymongo import MongoClient
 from uuid import uuid4
 
@@ -12,6 +13,7 @@ db = mongo_client["cse312"]  # database
 
 security_collection = db["security"]  # collection in the database for usernames/salts/password hashes/auth hashes
 post_collection = db["post"]
+quiz_collection = db['quiz']
 
 app = Flask(__name__)  # initialise the applicaton
 
@@ -124,7 +126,7 @@ def login():
                                            {"$set": {"hashed authentication token": tokenHash}},
                                            True)  # updates database to include authenticated token hash in the record
             response = make_response(
-                redirect('/posts.html', 301))  # generates response that will redirect to the posts page
+                redirect('/create_quiz', 301))  # generates response that will redirect to the posts page
             response.set_cookie("auth", token, 3600, httponly=True)  # sets authentication token as a cookie
             return response
         else:
@@ -201,6 +203,53 @@ def like():
         post_collection.update_one({"mesID": messageID['postid']}, {"$set": {"userswholiked": listasString}})
         return betterMakeResponse("User did not like", "text/plain", 200)
 
+@app.route('/create_quiz', methods=['GET', 'POST'])
+def create_quiz():
+    if request.method == 'POST':
+        # Get quiz data from the form
+        question = request.form['question']
+        option1 = request.form['option1']
+        option2 = request.form['option2']
+        option3 = request.form['option3']
+        option4 = request.form['option4']
+        correct_answer = request.form['correct_answer']
+
+        # Save the quiz data to the MongoDB database
+        quiz_data = {
+            'question': question,
+            'option1': option1,
+            'option2': option2,
+            'option3': option3,
+            'option4': option4,
+            'correct_answer': correct_answer
+        }
+        quiz_collection.insert_one(quiz_data)
+
+        return betterMakeResponse("Create quiz successfully", "text/plain", 200)
+    else:
+        # If it's a get request, render the 'create_quiz.html' template
+        return render_template('create_quiz.html')
+
+@app.route('/view_quizzes', methods=['GET'])
+def view_quizzes():
+    quizzes = quiz_collection.find()
+    return render_template('view_quizzes.html', quizzes=quizzes)
+
+@app.route('/check_answer/<quiz_id>', methods=['POST'])
+def check_answer(quiz_id):
+    if request.method == 'POST':
+        selected_choice = request.form['choice']
+
+        # Retrieve the quiz from the database based on quiz_id
+        quiz = quiz_collection.find_one({"_id": ObjectId(quiz_id)})
+
+        # Check if the selected choice is the correct answer
+        is_correct = (selected_choice == quiz['correct_answer'])
+    
+        if is_correct:
+            return betterMakeResponse("Correct", "text/plain", 200)
+        else:
+            return betterMakeResponse("Incorrect", "text/plain", 200)
 
 def hashSlingingSlasher(token):  # wrapper for hashlib256
     object256 = hashlib.sha256()
