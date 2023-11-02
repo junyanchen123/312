@@ -4,6 +4,9 @@
     <title>Silicon Sages</title>
     <link rel="stylesheet" type="text/css" href="/static/view_quizzes.css">
 </head>
+
+<div class="background"></div>
+
 <body>
     <h1>Quizzes Created by Users</h1>
     <a href="/create_quiz">Create a Quiz</a>
@@ -11,6 +14,7 @@
         {% for quiz in quizzes %}
         <li>
             <form action="/check_answer/{{ quiz._id }}" method="post">
+                <strong>Posted by: </strong>{{ quiz.username }}<br>
                 <strong>Question: </strong>{{ quiz.question }}<br>
                 <strong>Options: </strong><br>
                 <ul>
