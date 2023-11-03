@@ -6,7 +6,7 @@
 </head>
 <body>
     <h1>Create a Quiz</h1>
-    <form action="/create_quiz" method="post">
+    <form action="/create_quiz" method="post" enctype="multipart/form-data">
         <label for="question">Question:</label>
         <input type="text" name="question" required><br><br>
         
@@ -15,7 +15,11 @@
         <input type="text" name="option2" placeholder="Option 2" required><br>
         <input type="text" name="option3" placeholder="Option 3" required><br>
         <input type="text" name="option4" placeholder="Option 4" required><br>
-        
+
+
+        <label for="quiz_image">You can upload an Image for your question:</label>
+        <input type="file" name="quiz_image" >
+
         <label for="correct_answer">Correct Answer:</label>
         <select name="correct_answer">
             <option value="option1">Option 1</option>

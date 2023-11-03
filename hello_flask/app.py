@@ -1,10 +1,12 @@
 import html
 import hashlib
+import os
+
 import bcrypt
 import json
 import datetime
 from bson.objectid import ObjectId
-from flask import Flask, make_response, request, redirect, render_template
+from flask import Flask, make_response, request, redirect, render_template, send_from_directory
 from pymongo import MongoClient
 from uuid import uuid4
 
@@ -17,9 +19,10 @@ quiz_collection = db['quiz']
 
 app = Flask(__name__)  # initialise the applicaton
 
-post_collection.delete_many({})                            #REMOVE THIS LINE
-security_collection.delete_many({})                        #REMOVE THIS LINE
+post_collection.delete_many({})  # REMOVE THIS LINE
+security_collection.delete_many({})  # REMOVE THIS LINE
 quiz_collection.delete_many({})
+
 
 @app.route("/")
 def home():
@@ -46,14 +49,14 @@ def posterthingy():
     return csser("templates/posts.css")
 
 
-
 def userLocator():
-    auth = request.cookies.get('auth')          #gets auth plaintext
-    username = "Guest"                          #default is guest
-    if auth != None:                            #if there is an auth cookie, gets username
-        hashAuth = hashSlingingSlasher(auth)    #hashes auth plaintext
-        record = security_collection.find_one({"hashed authentication token": hashAuth})    #finds user record in database
-        username = record["username"]           #gets username from user record
+    auth = request.cookies.get('auth')  # gets auth plaintext
+    username = "Guest"  # default is guest
+    if auth != None:  # if there is an auth cookie, gets username
+        hashAuth = hashSlingingSlasher(auth)  # hashes auth plaintext
+        record = security_collection.find_one(
+            {"hashed authentication token": hashAuth})  # finds user record in database
+        username = record["username"]  # gets username from user record
     return username
 
 
@@ -66,7 +69,8 @@ def jsFunctions():
 @app.route("/background-posts.jpg")
 def background():
     imageCodeStream = open("templates/background-posts.jpg", "rb").read()
-    return betterMakeResponse(imageCodeStream,"image/jpg")
+    return betterMakeResponse(imageCodeStream, "image/jpg")
+
 
 @app.route("/visit-counter")
 def cookie():
@@ -83,11 +87,12 @@ def cookie():
 
 @app.route("/guest", methods=['POST'])
 def guestMode():
-    token_str = request.cookies.get("auth")                 #gets auth plaintext cookie
-    response = make_response(redirect("/view_quizzes.html",301))   #makes redirect response object
-    if token_str != None:                                   #if there is a user signed in
-        response.delete_cookie("auth")                      #remove auth cookie (sign user out)
-    return response                                         #return posts.html
+    token_str = request.cookies.get("auth")  # gets auth plaintext cookie
+    response = make_response(redirect("/view_quizzes.html", 301))  # makes redirect response object
+    if token_str != None:  # if there is a user signed in
+        response.delete_cookie("auth")  # remove auth cookie (sign user out)
+    return response  # return posts.html
+
 
 @app.route("/register", methods=['POST'])
 def register():
@@ -204,10 +209,12 @@ def like():
         post_collection.update_one({"mesID": messageID['postid']}, {"$set": {"userswholiked": listasString}})
         return betterMakeResponse("User did not like", "text/plain", 200)
 
+
 @app.route('/create_quiz', methods=['GET', 'POST'])
 def create_quiz():
     if request.method == 'POST':
         # Get quiz data from the form
+        print(request)
         question = request.form['question']
         option1 = request.form['option1']
         option2 = request.form['option2']
@@ -223,20 +230,39 @@ def create_quiz():
             'option2': html.escape(option2),
             'option3': html.escape(option3),
             'option4': html.escape(option4),
-            'correct_answer': html.escape(correct_answer)
+            'correct_answer': html.escape(correct_answer),
         }
-        quiz_collection.insert_one(quiz_data)
-
-        #return betterMakeResponse("Create quiz successfully", "text/plain", 200)
+        inserted = quiz_collection.insert_one(quiz_data)
+        # Handle quiz image upload
+        if 'quiz_image' in request.files:
+            quiz_image = request.files['quiz_image']
+            if quiz_image.filename == '':
+                return redirect('/view_quizzes', 301)
+            print(quiz_image)
+            _id = inserted.inserted_id
+            dir = '/uploaded'
+            if not os.path.exists(dir):
+                os.makedirs(dir)
+            image_filename = str(_id) + '.jpg'
+            filepath = os.path.join(dir, image_filename)
+            quiz_image.save(filepath)
+            quiz_collection.update_one({'_id': _id}, {'$set': {'image': image_filename}})
         return redirect('/view_quizzes', 301)
     else:
         # If it's a get request, render the 'create_quiz.html' template
         return render_template('create_quiz.html')
 
+
+@app.route('/uploaded_file/<filename>')
+def sendimage(filename):
+    return send_from_directory('/uploaded',filename)
+
+
 @app.route('/view_quizzes', methods=['GET'])
 def view_quizzes():
     quizzes = quiz_collection.find()
     return render_template('view_quizzes.html', quizzes=quizzes)
+
 
 @app.route('/check_answer/<quiz_id>', methods=['POST'])
 def check_answer(quiz_id):
@@ -248,11 +274,12 @@ def check_answer(quiz_id):
 
         # Check if the selected choice is the correct answer
         is_correct = (selected_choice == quiz['correct_answer'])
-    
+
         if is_correct:
             return betterMakeResponse("Correct", "text/plain", 200)
         else:
             return betterMakeResponse("Incorrect", "text/plain", 200)
+
 
 def hashSlingingSlasher(token):  # wrapper for hashlib256
     object256 = hashlib.sha256()
