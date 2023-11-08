@@ -1,3 +1,5 @@
+const socket = io('http://localhost:8080', {transports: ['websocket']});
+
 function user(){                                                    //gets the username for the frontend display
     const request = new XMLHttpRequest();                           //generates an XMLHttpRequest for later use
     request.onreadystatechange = function() {                       

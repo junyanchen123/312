@@ -9,6 +9,7 @@ from bson.objectid import ObjectId
 from flask import Flask, make_response, request, redirect, render_template, send_from_directory
 from pymongo import MongoClient
 from uuid import uuid4
+from flask_socketio import SocketIO
 
 mongo_client = MongoClient("mongo")
 db = mongo_client["cse312"]  # database
@@ -19,6 +20,7 @@ quiz_collection = db['quiz']
 score_collection = db['score']  # used to track user's score
 
 app = Flask(__name__)  # initialise the applicaton
+socketio = SocketIO(app, async_mode='eventlet', transports=['websocket'])
 
 post_collection.delete_many({})  # REMOVE THIS LINE
 security_collection.delete_many({})  # REMOVE THIS LINE
@@ -359,4 +361,4 @@ def betterMakeResponse(file, ct, status=200):  # takes in all necessary info to 
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host="0.0.0.0", port=8080)  # any time files change automatically refresh
+    socketio.run(app, host='0.0.0.0', port=8080)  # any time files change automatically refresh
