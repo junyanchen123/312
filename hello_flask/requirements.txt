@@ -1,4 +1,6 @@
 Flask
+Flask-SocketIO
+eventlet
 Werkzeug==2.3.7
 pymongo
 bcrypt
