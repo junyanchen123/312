@@ -16,6 +16,7 @@ db = mongo_client["cse312"]  # database
 security_collection = db["security"]  # collection in the database for usernames/salts/password hashes/auth hashes
 post_collection = db["post"]
 quiz_collection = db['quiz']
+score_collection = db['score']  # used to track user's score
 
 app = Flask(__name__)  # initialise the applicaton
 
@@ -23,6 +24,7 @@ post_collection.delete_many({})  # REMOVE THIS LINE
 security_collection.delete_many({})  # REMOVE THIS LINE
 quiz_collection.delete_many({})
 
+global score
 
 @app.route("/")
 def home():
@@ -106,8 +108,8 @@ def register():
     if len(registeredUsers) != 0:  # this list is always len 1, the only element is one dictionary containing each user record
         return redirect("/", 301)  # username is not available
     else:
-        security_collection.insert_one({"username": username, "salt": salt,
-                                        "hpw": hashPass})  # username is unique so it is inserted into the database
+        security_collection.insert_one({"username": username, "salt": salt, "hpw": hashPass})  # username is unique so it is inserted into the database
+        # score_collection.insert_one({"username": username, "score": 0})
         return redirect("/login.html", 301)  # username is available
 
 
@@ -134,6 +136,10 @@ def login():
             response = make_response(
                 redirect('/view_quizzes', 301))  # generates response that will redirect to the posts page
             response.set_cookie("auth", token, 3600, httponly=True)  # sets authentication token as a cookie
+
+            # if user authenticated, check score db(create or get)
+            # score_collection.find_one({"username": username})
+            # todo
             return response
         else:
             return redirect("/login.html", 301)  # incorrect password
@@ -275,11 +281,56 @@ def check_answer(quiz_id):
         # Check if the selected choice is the correct answer
         is_correct = (selected_choice == quiz['correct_answer'])
 
-        if is_correct:
-            return betterMakeResponse("Correct", "text/plain", 200)
-        else:
-            return betterMakeResponse("Incorrect", "text/plain", 200)
+        token_str = request.cookies.get('auth')  # token is a now a string in the database
+        try:
+            token = str(token_str)  # should already be str, if None it will fail
+        except TypeError:  # if None no user log in
+            return betterMakeResponse("No user login", "text/plain", 401)
+        hashedToken = hashSlingingSlasher(token)  # hashes the token using sha256 (no salt)
+        userData = security_collection.find_one(
+            {"hashed authentication token": hashedToken})  # gets all user information from security_collection
+        if not userData:
+            return betterMakeResponse("Unauthenticated User", "text/plain", 401)
 
+        username = userData['username']
+        score_record = score_collection.find_one({"username": username})
+
+        if not score_record:    # initial user's score
+            score_record = {
+                "username": username,
+                "score": 0,
+                "answered_quizzes": []
+            }
+
+        if quiz_id in score_record.get('answered_quizzes', []):   # Each question can only be answered once
+            return betterMakeResponse("You have already answered this quiz.", "text/plain", 200)
+
+        if is_correct:
+            # get the user's score db, and add 1
+            new_score = score_record['score'] + 1
+            response_message = "Correct. Score: " + str(new_score)
+
+        else:
+            # get the user's score db, and minus 1
+            new_score = score_record['score'] - 1
+            response_message = "Incorrect. Score: " + str(new_score)
+
+        score_collection.update_one(     # update score to db and quiz id
+            {"username": username},
+            {
+                "$set": {"score": new_score},
+                "$push": {"answered_quizzes": quiz_id}
+            },
+            upsert=True
+        )
+
+        return betterMakeResponse(response_message, "text/plain", 200)
+
+@app.route('/websocket')
+def websocket():
+    # handshake
+
+    return
 
 def hashSlingingSlasher(token):  # wrapper for hashlib256
     object256 = hashlib.sha256()
