@@ -4,7 +4,9 @@
     <title>Silicon Sages</title>
     <link rel="stylesheet" type="text/css" href="/static/create_quiz.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.2/socket.io.js"></script>
+
     <script src="/static/functions.js"></script>
+
 </head>
 <body>
     <h1>Create a Quiz</h1>
@@ -30,7 +32,7 @@
             <option value="option4">Option 4</option>
         </select><br><br>
 
-        <input type="submit" value="Create Quiz">
+        <input type="submit" value="Create Quiz" onclick="startQuizTimer()">
     </form>
     
     <a href="/view_quizzes">View Quizzes</a>

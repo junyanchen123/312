@@ -1,6 +1,8 @@
 import html
 import hashlib
 import os
+import random
+import time
 
 import bcrypt
 import json
@@ -9,6 +11,8 @@ from bson.objectid import ObjectId
 from flask import Flask, make_response, request, redirect, render_template, send_from_directory
 from pymongo import MongoClient
 from uuid import uuid4
+from datetime import datetime
+
 from flask_socketio import SocketIO
 
 mongo_client = MongoClient("mongo")
@@ -27,7 +31,7 @@ security_collection.delete_many({})  # REMOVE THIS LINE
 quiz_collection.delete_many({})
 
 global score
-
+start_times = {}
 @app.route("/")
 def home():
     return htmler("templates/index.html")
@@ -229,7 +233,6 @@ def create_quiz():
         option3 = request.form['option3']
         option4 = request.form['option4']
         correct_answer = request.form['correct_answer']
-
         # Save the quiz data to the MongoDB database
         quiz_data = {
             'username': userLocator(),
@@ -243,6 +246,10 @@ def create_quiz():
             'correct_times': 0
         }
         inserted = quiz_collection.insert_one(quiz_data)
+        _id = str(inserted.inserted_id)
+        start_time = time.time()
+        start_times[_id] = start_time
+        print(f"start_times: {start_times}")
         # Handle quiz image upload
         if 'quiz_image' in request.files:
             quiz_image = request.files['quiz_image']
@@ -270,7 +277,8 @@ def sendimage(filename):
 
 @app.route('/view_quizzes', methods=['GET'])
 def view_quizzes():
-    quizzes = quiz_collection.find()
+    quizzes = quiz_collection.find({'notdisplay': {'$ne': True}})
+    print(quizzes)
     return render_template('view_quizzes.html', quizzes=quizzes)
 
 
@@ -408,5 +416,19 @@ def betterMakeResponse(file, ct, status=200):  # takes in all necessary info to 
     return response  # returns response object
 
 
+@socketio.on('get_remaining_time')
+def get_remaining_time(data):
+    quiz_id = data['quiz_id']
+    start_time = start_times.get(quiz_id)
+    current_time = time.time()
+    time_last = (current_time - start_time)
+    remaining_time = int(60-time_last)
+    if remaining_time < 0:
+        quiz_collection.update_one({'_id': ObjectId(quiz_id)}, {'$set': {'notdisplay': True}})
+        # quizzes = quiz_collection.find({'notdisplay': {'$ne': True}})
+        # print(quizzes)
+        socketio.emit('refresh')
+    socketio.emit('update_remaining_time', {'quiz_id': quiz_id, 'remaining_time': remaining_time})
+
 if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port=8080)  # any time files change automatically refresh
+    socketio.run(app, host='0.0.0.0', port=8080, debug=True)  # any time files change automatically refresh

@@ -5,6 +5,7 @@
     <link rel="stylesheet" type="text/css" href="/static/view_quizzes.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.2/socket.io.js"></script>
     <script src="/static/functions.js"></script>
+
 </head>
 
 <div class="background"></div>
@@ -14,8 +15,9 @@
     <a href="/create_quiz">Create a Quiz</a>
     <ul>
         {% for quiz in quizzes %}
-        <li>
+        <li class="quiz hide-quiz" data-quiz-id="{{ quiz._id }}"  >
             <form action="/check_answer/{{ quiz._id }}" method="post">
+                <div class="timer"></div>
                 <strong>Posted by: </strong>{{ quiz.username }}<br>
                 <strong>Question: </strong>{{ quiz.question }}<br>
                 <strong>Options: </strong><br>
@@ -35,7 +37,27 @@
         <br>
         {% endfor %}
     </ul>
-
+    <script>
+        socket.on('connect', function() {
+            var quizElements = document.querySelectorAll('.quiz');
+            quizElements.forEach(function(quizElement) {
+            var quizId = quizElement.getAttribute('data-quiz-id');
+            socket.emit('get_remaining_time', {'quiz_id': quizId});
+            setInterval(function() {
+                var remain_time = socket.emit('get_remaining_time', {'quiz_id': quizId})}, 100);
+            });
+        });
+        socket.on('update_remaining_time', function(data) {
+            var quizId = data.quiz_id;
+            var remainingTime = data.remaining_time;
+            var quizElement = document.querySelector('.quiz[data-quiz-id="' + quizId + '"]');
+            var timerElement = quizElement.querySelector('.timer');
+            timerElement.innerText = 'Remaining: '+remainingTime+' s';
+        });
+        socket.on('refresh', () => {
+          window.location.reload(true); // This will refresh the browser
+        });
+    </script>
 </body>
 </html>
 
