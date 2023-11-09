@@ -26,9 +26,9 @@ score_collection = db['score']  # used to track user's score
 app = Flask(__name__)  # initialise the applicaton
 socketio = SocketIO(app, async_mode='eventlet', transports=['websocket'])
 
-post_collection.delete_many({})  # REMOVE THIS LINE
-security_collection.delete_many({})  # REMOVE THIS LINE
-quiz_collection.delete_many({})
+# post_collection.delete_many({})  # REMOVE THIS LINE
+# security_collection.delete_many({})  # REMOVE THIS LINE
+# quiz_collection.delete_many({})
 
 global score
 start_times = {}
