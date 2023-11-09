@@ -224,7 +224,7 @@ def like():
 
 @app.route('/create_quiz', methods=['GET', 'POST'])
 def create_quiz():
-    uthenticatedUser = False       #false if guest
+    authenticatedUser = False       #false if guest
     username = userLocator()
     if username != 'Guest':
         authenticatedUser = True
