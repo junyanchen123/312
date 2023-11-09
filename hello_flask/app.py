@@ -239,6 +239,8 @@ def create_quiz():
             'option3': html.escape(option3),
             'option4': html.escape(option4),
             'correct_answer': html.escape(correct_answer),
+            'answer_times': 0,
+            'correct_times': 0
         }
         inserted = quiz_collection.insert_one(quiz_data)
         # Handle quiz image upload
@@ -295,6 +297,11 @@ def check_answer(quiz_id):
             return betterMakeResponse("Unauthenticated User", "text/plain", 401)
 
         username = userData['username']
+        
+        # if quiz creator answer his own question, then throw an error
+        if username == quiz['username']:
+            return betterMakeResponse("Creators can't answer their own questions", "text/plain", 401)
+        
         score_record = score_collection.find_one({"username": username})
 
         if not score_record:    # initial user's score
@@ -306,16 +313,36 @@ def check_answer(quiz_id):
 
         if quiz_id in score_record.get('answered_quizzes', []):   # Each question can only be answered once
             return betterMakeResponse("You have already answered this quiz.", "text/plain", 200)
+        
+        new_score = score_record['score']
 
         if is_correct:
             # get the user's score db, and add 1
-            new_score = score_record['score'] + 1
+            new_score = new_score + 1
             response_message = "Correct. Score: " + str(new_score)
+            
+            correct_times = quiz['correct_times']+1
+            
+            quiz_collection.update_one(     # update score to db and quiz id
+            {"_id": ObjectId(quiz_id)},
+            {
+                "$set": {"correct_times": correct_times},
+            }
+        )
 
         else:
             # get the user's score db, and minus 1
-            new_score = score_record['score'] - 1
-            response_message = "Incorrect. Score: " + str(new_score)
+            # new_score = score_record['score'] - 1
+            response_message = "Incorrect. Score: 0"
+        
+        answer_times = quiz['answer_times']+1
+        
+        quiz_collection.update_one(     # update score to db and quiz id
+            {"_id": ObjectId(quiz_id)},
+            {
+                "$set": {"answer_times": answer_times},
+            }
+        )
 
         score_collection.update_one(     # update score to db and quiz id
             {"username": username},
@@ -327,6 +354,27 @@ def check_answer(quiz_id):
         )
 
         return betterMakeResponse(response_message, "text/plain", 200)
+    
+@app.route('/gradebook', methods=['GET'])
+def gradebook():
+    token_str = request.cookies.get('auth')  # token is a now a string in the database
+    try:
+        token = str(token_str)  # should already be str, if None it will fail
+    except TypeError:  # if None no user log in
+        return betterMakeResponse("No user login", "text/plain", 401)
+    hashedToken = hashSlingingSlasher(token)  # hashes the token using sha256 (no salt)
+    userData = security_collection.find_one(
+        {"hashed authentication token": hashedToken})  # gets all user information from security_collection
+    if not userData:
+        return betterMakeResponse("Unauthenticated User", "text/plain", 401)
+    
+    username = userData['username']
+    
+    quizzes = quiz_collection.find({"username": username})
+    
+    return render_template('gradebook.html', quizzes=quizzes)
+    
+    
 
 @app.route('/websocket')
 def websocket():

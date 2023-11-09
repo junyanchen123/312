@@ -60,3 +60,16 @@ a {
     font-size: 18px;
     text-transform: uppercase;
 }
+
+a.gradebook {
+    font-weight: normal;
+    color: #f9f7f7;
+}
+
+a.gradebook:hover {
+    color: #080808;
+}
+
+.grade{
+    color: #e70909;
+}

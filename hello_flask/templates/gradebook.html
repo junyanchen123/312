@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Silicon Sages</title>
+    <link rel="stylesheet" type="text/css" href="/static/view_quizzes.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.2/socket.io.js"></script>
+    <script src="/static/functions.js"></script>
+</head>
+
+<div class="background"></div>
+
+<body>
+    <h1>GradeBook</h1>
+    <a href="/create_quiz">Create a Quiz</a>
+    <ul>
+        {% for quiz in quizzes %}
+        <li>
+            <strong>Question: </strong>{{ quiz.question }}<br>
+            <strong>Options: </strong><br>
+            {% if quiz.image %}
+                <strong>Quiz Image</strong>
+                <img src="{{ url_for('sendimage', filename=quiz._id|string + '.jpg') }}" alt="Image" class="quiz-image">
+            {% endif %}
+            <ul>
+                <li>{{ quiz.option1 }}</li>
+                <li>{{ quiz.option2 }}</li>
+                <li>{{ quiz.option3 }}</li>
+                <li>{{ quiz.option4 }}</li>
+            </ul>
+            <strong>Correct Answer: </strong>{{ quiz.correct_answer }}<br>
+            <strong class='grade'>Correct / Total: </strong>{{ quiz.correct_times }} / {{ quiz.answer_times }}
+        </li>
+        <br>
+        {% endfor %}
+    </ul>
+</body>
+</html>
