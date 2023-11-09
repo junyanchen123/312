@@ -224,47 +224,56 @@ def like():
 
 @app.route('/create_quiz', methods=['GET', 'POST'])
 def create_quiz():
-    if request.method == 'POST':
-        # Get quiz data from the form
-        print(request)
-        question = request.form['question']
-        option1 = request.form['option1']
-        option2 = request.form['option2']
-        option3 = request.form['option3']
-        option4 = request.form['option4']
-        correct_answer = request.form['correct_answer']
-        # Save the quiz data to the MongoDB database
-        quiz_data = {
-            'username': userLocator(),
-            'question': html.escape(question),
-            'option1': html.escape(option1),
-            'option2': html.escape(option2),
-            'option3': html.escape(option3),
-            'option4': html.escape(option4),
-            'correct_answer': html.escape(correct_answer),
-            'answer_times': 0,
-            'correct_times': 0
-        }
-        inserted = quiz_collection.insert_one(quiz_data)
-        _id = str(inserted.inserted_id)
-        start_time = time.time()
-        start_times[_id] = start_time
-        print(f"start_times: {start_times}")
-        # Handle quiz image upload
-        if 'quiz_image' in request.files:
-            quiz_image = request.files['quiz_image']
-            if quiz_image.filename == '':
-                return redirect('/view_quizzes', 301)
-            print(quiz_image)
-            _id = inserted.inserted_id
-            dir = '/uploaded'
-            if not os.path.exists(dir):
-                os.makedirs(dir)
-            image_filename = str(_id) + '.jpg'
-            filepath = os.path.join(dir, image_filename)
-            quiz_image.save(filepath)
-            quiz_collection.update_one({'_id': _id}, {'$set': {'image': image_filename}})
-        return redirect('/view_quizzes', 301)
+    uthenticatedUser = False       #false if guest
+    username = userLocator()
+    if username != 'Guest':
+        authenticatedUser = True
+
+    if request.method == 'POST' :
+
+        if authenticatedUser:
+            # Get quiz data from the form
+            
+            question = request.form['question']
+            option1 = request.form['option1']
+            option2 = request.form['option2']
+            option3 = request.form['option3']
+            option4 = request.form['option4']
+            correct_answer = request.form['correct_answer']
+            # Save the quiz data to the MongoDB database
+            quiz_data = {
+                'username': userLocator(),
+                'question': html.escape(question),
+                'option1': html.escape(option1),
+                'option2': html.escape(option2),
+                'option3': html.escape(option3),
+                'option4': html.escape(option4),
+                'correct_answer': html.escape(correct_answer),
+                'answer_times': 0,
+                'correct_times': 0
+            }
+            inserted = quiz_collection.insert_one(quiz_data)
+            _id = str(inserted.inserted_id)
+            start_time = time.time()
+            start_times[_id] = start_time
+            print(f"start_times: {start_times}")
+            # Handle quiz image upload
+            if 'quiz_image' in request.files:
+                quiz_image = request.files['quiz_image']
+                if quiz_image.filename == '':
+                    return redirect('/view_quizzes', 301)
+                print(quiz_image)
+                _id = inserted.inserted_id
+                dir = '/uploaded'
+                if not os.path.exists(dir):
+                    os.makedirs(dir)
+                image_filename = str(_id) + '.jpg'
+                filepath = os.path.join(dir, image_filename)
+                quiz_image.save(filepath)
+                quiz_collection.update_one({'_id': _id}, {'$set': {'image': image_filename}})
+            return redirect('/view_quizzes', 301)
+        else:   # guest so just redirect to Register 
+            return redirect('/', 301)
     else:
         # If it's a get request, render the 'create_quiz.html' template
         return render_template('create_quiz.html')
