@@ -12,6 +12,8 @@
 <body>
     <h1>GradeBook</h1>
     <a href="/create_quiz">Create a Quiz</a>
+
+    <h2>This is for created quizzes </h2>
     <ul>
         {% for quiz in quizzes %}
         <li>
@@ -29,6 +31,28 @@
             </ul>
             <strong>Correct Answer: </strong>{{ quiz.correct_answer }}<br>
             <strong class='grade'>Correct / Total: </strong>{{ quiz.correct_times }} / {{ quiz.answer_times }}
+        </li>
+        <br>
+        {% endfor %}
+    </ul>
+<h2>This is for taken quizzes </h2>  
+    <ul>
+        {% for quiz in takenQuizzes %}
+        <li>
+            <strong>Question: </strong>{{ quiz.question }}<br>
+            <strong>Options: </strong><br>
+            {% if quiz.image %}
+                <strong>Quiz Image</strong>
+                <img src="{{ url_for('sendimage', filename=quiz._id|string + '.jpg') }}" alt="Image" class="quiz-image">
+            {% endif %}
+            <ul>
+                <li>{{ quiz.option1 }}</li>
+                <li>{{ quiz.option2 }}</li>
+                <li>{{ quiz.option3 }}</li>
+                <li>{{ quiz.option4 }}</li>
+            </ul>
+            <strong>Correct Answer: </strong>{{ quiz.correct_answer }}<br>
+            <strong class='grade'>UserScore / Total: </strong>{{ quiz.scored}} / {{ 1 }}
         </li>
         <br>
         {% endfor %}

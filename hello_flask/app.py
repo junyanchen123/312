@@ -250,7 +250,9 @@ def create_quiz():
                 'option4': html.escape(option4),
                 'correct_answer': html.escape(correct_answer),
                 'answer_times': 0,
-                'correct_times': 0
+                'correct_times': 0,
+                # initialize as empty string. Updating this would be adding in following format: 'username:score,'
+                'attemptedUsers' : '' 
             }
             inserted = quiz_collection.insert_one(quiz_data)
             _id = str(inserted.inserted_id)
@@ -325,15 +327,19 @@ def check_answer(quiz_id):
             score_record = {
                 "username": username,
                 "score": 0,
-                "answered_quizzes": []
+                "answered_quizzes": [],
+                "quizToGrade": {}
             }
+            score_collection.insert_one(score_record)
 
         if quiz_id in score_record.get('answered_quizzes', []):   # Each question can only be answered once
             return betterMakeResponse("You have already answered this quiz.", "text/plain", 200)
         
         new_score = score_record['score']
 
+        zeroOrOneScore = 0
         if is_correct:
+            zeroOrOneScore = 1
             # get the user's score db, and add 1
             new_score = new_score + 1
             response_message = "Correct. Score: " + str(new_score)
@@ -361,11 +367,14 @@ def check_answer(quiz_id):
             }
         )
 
+
+
         score_collection.update_one(     # update score to db and quiz id
             {"username": username},
             {
                 "$set": {"score": new_score},
-                "$push": {"answered_quizzes": quiz_id}
+                "$push": {"answered_quizzes": quiz_id},
+                "$set" : {"quizToGrade." + quiz_id : str(zeroOrOneScore) }
             },
             upsert=True
         )
@@ -387,9 +396,22 @@ def gradebook():
     
     username = userData['username']
     
-    quizzes = quiz_collection.find({"username": username})
+    quizzesMadeByUser = quiz_collection.find({"username": username})  # this is quizzes that user made 
+
+    takenQuizzes = []
+    scoreRecord = score_collection.find_one({"username": username})
+    keys = None
+
+    if(scoreRecord!=None):
+        keysObject = scoreRecord['quizToGrade']
+        if(keysObject!=None):
+            keys = keysObject.keys()
+            for key in keys:
+                originalQuiz = quiz_collection.find_one({"_id": ObjectId(key)})
+                originalQuiz['scored'] = scoreRecord['quizToGrade'][key]
+                takenQuizzes.append(originalQuiz)
     
-    return render_template('gradebook.html', quizzes=quizzes)
+    return render_template('gradebook.html', quizzes=quizzesMadeByUser, takenQuizzes=takenQuizzes )
     
     
 
