@@ -319,7 +319,8 @@ def check_answer(quiz_id):
         
         # if quiz creator answer his own question, then throw an error
         if username == quiz['username']:
-            return betterMakeResponse("Creators can't answer their own questions", "text/plain", 401)
+            response_message = "Creators can't answer their own questions"
+            return render_template('answer_result.html', message=response_message, return_url='/view_quizzes')
         
         score_record = score_collection.find_one({"username": username})
 
@@ -333,7 +334,9 @@ def check_answer(quiz_id):
             score_collection.insert_one(score_record)
 
         if quiz_id in score_record.get('answered_quizzes', []):   # Each question can only be answered once
-            return betterMakeResponse("You have already answered this quiz.", "text/plain", 200)
+            # return render_template('___.html') html contain "You have already answered this quiz." text and return home button
+            response_message = "You have already answered this quiz."
+            return render_template('answer_result.html', message=response_message, return_url='/view_quizzes')
         
         new_score = score_record['score']
 
@@ -342,7 +345,8 @@ def check_answer(quiz_id):
             zeroOrOneScore = 1
             # get the user's score db, and add 1
             new_score = new_score + 1
-            response_message = "Correct. Score: " + str(new_score)
+            # response_message = "Correct. Score: " + str(new_score)
+            response_message = "Correct. Score: 1"
             
             correct_times = quiz['correct_times']+1
             
@@ -367,19 +371,17 @@ def check_answer(quiz_id):
             }
         )
 
-
-
         score_collection.update_one(     # update score to db and quiz id
             {"username": username},
             {
                 "$set": {"score": new_score},
                 "$push": {"answered_quizzes": quiz_id},
-                "$set" : {"quizToGrade." + quiz_id : str(zeroOrOneScore) }
+                "$set": {"quizToGrade." + quiz_id: str(zeroOrOneScore)}
             },
             upsert=True
         )
-
-        return betterMakeResponse(response_message, "text/plain", 200)
+        # return render_template('___.html') html contain the score, whether the answer is correct, and return button to view quiz page
+        return render_template('answer_result.html', message=response_message, return_url='/view_quizzes')
     
 @app.route('/gradebook', methods=['GET'])
 def gradebook():
