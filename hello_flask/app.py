@@ -452,16 +452,21 @@ def betterMakeResponse(file, ct, status=200):  # takes in all necessary info to 
 @socketio.on('get_remaining_time')
 def get_remaining_time(data):
     quiz_id = data['quiz_id']
-    start_time = start_times.get(quiz_id)
+    
+    if quiz_id not in start_times:
+        start_times[quiz_id] = time.time()
+    
+    start_time = start_times[quiz_id]
     current_time = time.time()
     time_last = (current_time - start_time)
-    remaining_time = int(60-time_last)
+    remaining_time = int(60 - time_last)
+    
     if remaining_time < 0:
         quiz_collection.update_one({'_id': ObjectId(quiz_id)}, {'$set': {'notdisplay': True}})
-        # quizzes = quiz_collection.find({'notdisplay': {'$ne': True}})
-        # print(quizzes)
         socketio.emit('refresh')
+    
     socketio.emit('update_remaining_time', {'quiz_id': quiz_id, 'remaining_time': remaining_time})
+
 
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0', port=8080, debug=True)  # any time files change automatically refresh

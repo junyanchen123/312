@@ -31,17 +31,17 @@
             <ul>
                 {% for quiz in quizzes %}
                 <li>
-                    <strong>Question: </strong>{{ quiz.question }}<br>
+                    <strong>Question: </strong>{{ quiz.question|safe }}<br>
                     <strong>Options: </strong><br>
                     {% if quiz.image %}
                         <strong>Quiz Image</strong>
                         <img src="{{ url_for('sendimage', filename=quiz._id|string + '.jpg') }}" alt="Image" class="quiz-image">
                     {% endif %}
                     <ul>
-                        <li>{{ quiz.option1 }}</li>
-                        <li>{{ quiz.option2 }}</li>
-                        <li>{{ quiz.option3 }}</li>
-                        <li>{{ quiz.option4 }}</li>
+                        <li>{{ quiz.option1|safe }}</li>
+                        <li>{{ quiz.option2|safe }}</li>
+                        <li>{{ quiz.option3|safe }}</li>
+                        <li>{{ quiz.option4|safe }}</li>
                     </ul>
                     <strong>Correct Answer: </strong>{{ quiz.correct_answer }}<br>
                     <strong class='grade'>Correct / Total: </strong>{{ quiz.correct_times }} / {{ quiz.answer_times }}
@@ -56,17 +56,17 @@
             <ul>
                 {% for quiz in takenQuizzes %}
                 <li>
-                    <strong>Question: </strong>{{ quiz.question }}<br>
+                    <strong>Question: </strong>{{ quiz.question|safe }}<br>
                     <strong>Options: </strong><br>
                     {% if quiz.image %}
                         <strong>Quiz Image</strong>
                         <img src="{{ url_for('sendimage', filename=quiz._id|string + '.jpg') }}" alt="Image" class="quiz-image">
                     {% endif %}
                     <ul>
-                        <li>{{ quiz.option1 }}</li>
-                        <li>{{ quiz.option2 }}</li>
-                        <li>{{ quiz.option3 }}</li>
-                        <li>{{ quiz.option4 }}</li>
+                        <li>{{ quiz.option1|safe }}</li>
+                        <li>{{ quiz.option2|safe }}</li>
+                        <li>{{ quiz.option3|safe }}</li>
+                        <li>{{ quiz.option4|safe }}</li>
                     </ul>
                     <strong>Correct Answer: </strong>{{ quiz.correct_answer }}<br>
                     <strong class='grade'>UserScore / Total: </strong>{{ quiz.scored}} / {{ 1 }}
