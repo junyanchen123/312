@@ -31,7 +31,7 @@
                     <li><input type="radio" name="choice" value="option3">{{ quiz.option3|safe }}</li>
                     <li><input type="radio" name="choice" value="option4">{{ quiz.option4|safe }}</li>
                 </ul>
-                <input type="submit" value="Check Answer">
+                <input type="submit" value="Check Answer" onclick="refreshQuiz();">
             </form>
         </li>
         <br>
@@ -43,10 +43,16 @@
             quizElements.forEach(function(quizElement) {
             var quizId = quizElement.getAttribute('data-quiz-id');
             socket.emit('get_remaining_time', {'quiz_id': quizId});
+            //socket.emit('refresh_clients');   //broken, will hopefully support live updates in the future
             setInterval(function() {
-                var remain_time = socket.emit('get_remaining_time', {'quiz_id': quizId})}, 100);
+                var remain_time = socket.emit('get_remaining_time', {'quiz_id': quizId})},100);
             });
         });
+        /*                                  //broken, will hopefully support live updates in the future
+        socket.on('init_r',function(){
+            window.location.reload(true);
+            socket.off('refresh_clients');
+        })*/
         socket.on('update_remaining_time', function(data) {
             var quizId = data.quiz_id;
             var remainingTime = data.remaining_time;
@@ -60,4 +66,3 @@
     </script>
 </body>
 </html>
-

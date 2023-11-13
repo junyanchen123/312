@@ -1,19 +1,15 @@
 import html
 import hashlib
 import os
-import random
 import time
-
 import bcrypt
 import json
-import datetime
+from datetime import datetime
 from bson.objectid import ObjectId
 from flask import Flask, make_response, request, redirect, render_template, send_from_directory
 from pymongo import MongoClient
 from uuid import uuid4
-from datetime import datetime
-
-from flask_socketio import SocketIO
+from flask_socketio import SocketIO, emit
 
 mongo_client = MongoClient("mongo")
 db = mongo_client["cse312"]  # database
@@ -36,26 +32,21 @@ start_times = {}
 def home():
     return htmler("templates/index.html")
 
-
 @app.route("/login.html")
 def logger():
     return htmler("templates/login.html")
-
 
 @app.route("/index.css")
 def indexCsser():
     return csser("templates/index.css")
 
-
 @app.route("/posts.html")
 def posterhtml():
     return htmler("templates/posts.html")
 
-
 @app.route("/posts.css")
 def posterthingy():
     return csser("templates/posts.css")
-
 
 def userLocator():
     auth = request.cookies.get('auth')  # gets auth plaintext
@@ -67,18 +58,15 @@ def userLocator():
         username = record["username"]  # gets username from user record
     return username
 
-
 @app.route("/functions.js")
 def jsFunctions():
     jsCodeStream = open("static/functions.js", "rb").read()
     return betterMakeResponse(jsCodeStream, "text/javascript")
 
-
 @app.route("/background-posts.jpg")
 def background():
     imageCodeStream = open("templates/background-posts.jpg", "rb").read()
     return betterMakeResponse(imageCodeStream, "image/jpg")
-
 
 @app.route("/visit-counter")
 def cookie():
@@ -92,7 +80,6 @@ def cookie():
     response.headers.set("X-Content-Type-Options", "nosniff")
     return response
 
-
 @app.route("/guest", methods=['POST'])
 def guestMode():
     token_str = request.cookies.get("auth")  # gets auth plaintext cookie
@@ -100,7 +87,6 @@ def guestMode():
     if token_str != None:  # if there is a user signed in
         response.delete_cookie("auth")  # remove auth cookie (sign user out)
     return response  # return posts.html
-
 
 @app.route("/register", methods=['POST'])
 def register():
@@ -117,7 +103,6 @@ def register():
         security_collection.insert_one({"username": username, "salt": salt, "hpw": hashPass})  # username is unique so it is inserted into the database
         # score_collection.insert_one({"username": username, "score": 0})
         return redirect("/login.html", 301)  # username is available
-
 
 @app.route("/login", methods=['POST'])
 def login():
@@ -139,19 +124,13 @@ def login():
             security_collection.update_one({"username": username, "salt": salt, "hash": realHash},
                                            {"$set": {"hashed authentication token": tokenHash}},
                                            True)  # updates database to include authenticated token hash in the record
-            response = make_response(
-                redirect('/view_quizzes', 301))  # generates response that will redirect to the posts page
+            response = make_response(redirect('/view_quizzes', 301))  # generates response that will redirect to the posts page
             response.set_cookie("auth", token, 3600, httponly=True)  # sets authentication token as a cookie
-
-            # if user authenticated, check score db(create or get)
-            # score_collection.find_one({"username": username})
-            # todo
             return response
         else:
             return redirect("/login.html", 301)  # incorrect password
     else:
         return redirect("/login.html", 301)  # username not found
-
 
 @app.route("/get_posts", methods=['GET'])
 def get_posts():  # UNTESTED (pulled from most recent push)
@@ -159,7 +138,6 @@ def get_posts():  # UNTESTED (pulled from most recent push)
     for post in posts:
         post["_id"] = str(post["_id"])
     return json.dumps(posts)
-
 
 @app.route("/add_post", methods=['POST'])  # stores posts in the database
 def addPost():
@@ -187,7 +165,6 @@ def addPost():
         "userswholiked": str("")  # string 'list' of users who liked the post. Initalize as empty.
     })
     return betterMakeResponse("Post Success", "text/plain")
-
 
 @app.route('/like', methods=['POST'])
 def like():
@@ -220,7 +197,6 @@ def like():
         listasString = ','.join(likedusersList)
         post_collection.update_one({"mesID": messageID['postid']}, {"$set": {"userswholiked": listasString}})
         return betterMakeResponse("User did not like", "text/plain", 200)
-
 
 @app.route('/create_quiz', methods=['GET', 'POST'])
 def create_quiz():
@@ -258,7 +234,6 @@ def create_quiz():
             _id = str(inserted.inserted_id)
             start_time = time.time()
             start_times[_id] = start_time
-            print(f"start_times: {start_times}")
             # Handle quiz image upload
             if 'quiz_image' in request.files:
                 quiz_image = request.files['quiz_image']
@@ -280,23 +255,21 @@ def create_quiz():
         # If it's a get request, render the 'create_quiz.html' template
         return render_template('create_quiz.html')
 
-
 @app.route('/uploaded_file/<filename>')
 def sendimage(filename):
     return send_from_directory('/uploaded',filename)
 
-
 @app.route('/view_quizzes', methods=['GET'])
 def view_quizzes():
     quizzes = quiz_collection.find({'notdisplay': {'$ne': True}})
-    print(quizzes)
     return render_template('view_quizzes.html', quizzes=quizzes)
-
 
 @app.route('/check_answer/<quiz_id>', methods=['POST'])
 def check_answer(quiz_id):
     if request.method == 'POST':
-        selected_choice = request.form['choice']
+        selected_choice = request.form.get('choice')                        #uses get in case there is no choice selected
+        if type(selected_choice) == None:                                   #if user does not pick an option, refreshes the page
+            return make_response(redirect("/view_quizzes.html", 301))       #fixes no choice crashes server bug
 
         # Retrieve the quiz from the database based on quiz_id
         quiz = quiz_collection.find_one({"_id": ObjectId(quiz_id)})
@@ -414,14 +387,6 @@ def gradebook():
                 takenQuizzes.append(originalQuiz)
     
     return render_template('gradebook.html', quizzes=quizzesMadeByUser, takenQuizzes=takenQuizzes )
-    
-    
-
-@app.route('/websocket')
-def websocket():
-    # handshake
-
-    return
 
 def hashSlingingSlasher(token):  # wrapper for hashlib256
     object256 = hashlib.sha256()
@@ -429,16 +394,13 @@ def hashSlingingSlasher(token):  # wrapper for hashlib256
     tokenHash = object256.digest()
     return (tokenHash)
 
-
 def htmler(filename):  # wrapper for opening html files as bytes
     file = open(filename, "rb").read()  # opens filename as bytes and reads the contents
     return betterMakeResponse(file, "text/html")  # uses betterMakeResonse wrapper to make a response
 
-
 def csser(filename):  # wrapper for opening css files
     file = open(filename, "rb").read()  # opens filename as bytes and reads the contents
     return betterMakeResponse(file, "text/css")  # uses betterMakeResponse wrapper to make a response
-
 
 def betterMakeResponse(file, ct, status=200):  # takes in all necessary info to make a response
     response = make_response(file, status)
@@ -448,6 +410,10 @@ def betterMakeResponse(file, ct, status=200):  # takes in all necessary info to 
     response.headers.set("X-Content-Type-Options", "nosniff")  # sets nosniff header
     return response  # returns response object
 
+@socketio.on("refresh_clients") #will help with live updates in the future, for now this does not fully work
+def refreshClients():           #should not be accessible from the client at this point
+    print("got here")
+    emit('init_r',broadcast=True)
 
 @socketio.on('get_remaining_time')
 def get_remaining_time(data):
@@ -463,10 +429,8 @@ def get_remaining_time(data):
     
     if remaining_time < 0:
         quiz_collection.update_one({'_id': ObjectId(quiz_id)}, {'$set': {'notdisplay': True}})
-        socketio.emit('refresh')
-    
-    socketio.emit('update_remaining_time', {'quiz_id': quiz_id, 'remaining_time': remaining_time})
-
+        emit('refresh',broadcast=True)  #broadcast flag is for sending to ALL clients and not just one
+    emit('update_remaining_time',{'quiz_id':quiz_id,'remaining_time':remaining_time},broadcast=True)
 
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0', port=8080, debug=True)  # any time files change automatically refresh
